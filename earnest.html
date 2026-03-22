@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Earnest — Loudon Nokes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Archivo:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --red: #F7014C;
+  --black: #1C1D1D;
+  --white: #FFFFFF;
+  --off-white: #F2F0ED;
+}
+
+html { font-size: 16px; }
+
+body {
+  background: #FFFFFF;
+  color: var(--off-white);
+  font-family: 'Archivo', sans-serif;
+  overflow-x: hidden;
+  cursor: crosshair;
+}
+
+/* ── NAV ──────────────────────────────────────────── */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 48px;
+  height: 60px;
+  background: rgba(255,255,255,0.75);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+}
+
+.nav-logo {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+.nav-logo svg { height: 26px; width: auto; display: block; }
+
+.nav-back {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'Syne', sans-serif;
+  font-size: 0.63rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(0,0,0,0.35);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.nav-back:hover { color: var(--red); }
+.nav-back-arrow { transition: transform 0.15s; }
+.nav-back:hover .nav-back-arrow { transform: translateX(-3px); }
+
+/* ── PROJECT HEADER ───────────────────────────────── */
+.project-header {
+  padding: 140px 80px 60px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+}
+
+.project-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: clamp(48px, 7vw, 96px);
+  letter-spacing: -0.01em;
+  line-height: 0.92;
+  color: var(--black);
+}
+
+.project-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  padding-bottom: 6px;
+}
+
+.project-tags {
+  display: flex;
+  gap: 8px;
+}
+
+.project-tag {
+  font-family: 'Syne', sans-serif;
+  font-size: 0.58rem;
+  font-weight: 400;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(247,1,76,0.7);
+  border: 1px solid rgba(247,1,76,0.25);
+  padding: 6px 14px;
+}
+
+.project-year {
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  color: rgba(0,0,0,0.25);
+  text-transform: uppercase;
+}
+
+/* ── CASE STUDY IMAGE ─────────────────────────────── */
+.case-study {
+  padding: 64px 300px 80px;
+}
+
+.case-study img {
+  display: block;
+  width: 100%;
+  height: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+}
+
+/* ── PROTOTYPE EMBED ──────────────────────────────── */
+.prototype-section {
+  padding: 0 300px 80px;
+}
+
+.prototype-label {
+  font-family: 'Syne', sans-serif;
+  font-size: 0.6rem;
+  font-weight: 400;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(0,0,0,0.3);
+  margin-bottom: 20px;
+}
+
+.prototype-embed {
+  position: relative;
+  width: 100%;
+  padding-bottom: 56.25%; /* 16:9 */
+  height: 0;
+  overflow: hidden;
+}
+
+.prototype-embed iframe {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  border: 1px solid rgba(0,0,0,0.08);
+}
+
+/* ── FOOTER ────────────────────────────────────────── */
+footer {
+  padding: 28px 80px;
+  border-top: 1px solid rgba(0,0,0,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+footer a {
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  color: rgba(0,0,0,0.3);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+footer a:hover { color: var(--red); }
+
+.footer-logo-mark {
+  display: flex;
+  align-items: center;
+  opacity: 0.7;
+  transition: opacity 0.15s;
+}
+.footer-logo-mark:hover { opacity: 1; }
+
+.footer-copy {
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.14em;
+  color: rgba(0,0,0,0.2);
+}
+</style>
+</head>
+<body>
+
+<!-- ── NAV ──────────────────────────────────────────── -->
+<nav>
+  <a href="concept-B-obsidian-signal-v3.html" class="nav-logo">
+    <svg width="133" height="216" viewBox="0 0 133 216" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M40 27.4277V121.629H45.9307V85.2197H132.139V215.439L92.1377 188.011V93.8105H85.9307V130.22H0V0L40 27.4277Z" fill="#F7014C"/>
+    </svg>
+  </a>
+  <a href="concept-B-obsidian-signal-v3.html" class="nav-back">
+    <span class="nav-back-arrow">←</span> All Work
+  </a>
+</nav>
+
+<!-- ── PROJECT HEADER ──────────────────────────────── -->
+<header class="project-header">
+  <h1 class="project-title">Earnest</h1>
+  <div class="project-meta">
+    <div class="project-tags">
+      <span class="project-tag">UI/UX</span>
+      <span class="project-tag">Branding</span>
+    </div>
+    <span class="project-year">2025</span>
+  </div>
+</header>
+
+<!-- ── CASE STUDY ──────────────────────────────────── -->
+<main class="case-study">
+  <img src="earnest.png" alt="Earnest — UI/UX & Branding Case Study">
+</main>
+
+<!-- ── PROTOTYPE ───────────────────────────────────── -->
+<section class="prototype-section">
+  <p class="prototype-label">Interactive Prototype</p>
+  <div class="prototype-embed">
+    <iframe style="border: 1px solid rgba(0, 0, 0, 0.1);" src="https://embed.figma.com/proto/ExeLVesGlUjRkLdYLkBQay/Behance-Prototypes?page-id=1%3A2&node-id=55-698&viewport=341%2C282%2C0.25&scaling=scale-down&content-scaling=fixed&embed-host=share&bg-color=ffffff" allowfullscreen></iframe>
+  </div>
+</section>
+
+<!-- ── FOOTER ────────────────────────────────────────── -->
+<footer>
+  <a href="mailto:loudonnokes@gmail.com">loudonnokes@gmail.com</a>
+  <a href="concept-B-obsidian-signal-v3.html" class="footer-logo-mark" aria-label="Loudon Nokes">
+    <svg height="28" width="auto" viewBox="0 0 133 216" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M40 27.4277V121.629H45.9307V85.2197H132.139V215.439L92.1377 188.011V93.8105H85.9307V130.22H0V0L40 27.4277Z" fill="#F7014C"/>
+    </svg>
+  </a>
+  <span class="footer-copy">©2025 Loudon Nokes</span>
+</footer>
+
+</body>
+</html>

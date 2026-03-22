@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>About — Loudon Nokes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Archivo:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --red: #F7014C;
+  --black: #1C1D1D;
+  --white: #FFFFFF;
+  --off-white: #F2F0ED;
+}
+
+html { font-size: 16px; scroll-behavior: smooth; }
+
+body {
+  background: var(--black);
+  color: var(--off-white);
+  font-family: 'Archivo', sans-serif;
+  font-size: 16px;
+  line-height: 1.8;
+  overflow-x: hidden;
+  cursor: crosshair;
+}
+
+/* ── NAV ──────────────────────────────────────────── */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 48px;
+  height: 60px;
+  background: rgba(28,29,29,0.5);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-bottom: 1px solid rgba(247,1,76,0.12);
+}
+
+.nav-logo {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+.nav-logo svg {
+  height: 26px;
+  width: auto;
+  display: block;
+}
+
+.nav-links {
+  display: flex;
+  gap: 44px;
+  list-style: none;
+}
+
+.nav-links a {
+  font-family: 'Syne', sans-serif;
+  font-weight: 400;
+  font-size: 0.68rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.38);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.nav-links a:hover,
+.nav-links a.active { color: var(--red); }
+
+/* ── PAGE HEADER ──────────────────────────────────── */
+.page-header {
+  padding: 160px 80px 100px;
+  position: relative;
+  overflow: hidden;
+  border-bottom: 1px solid rgba(247,1,76,0.1);
+}
+
+/* Atmospheric top glow */
+.page-header::before {
+  content: '';
+  position: absolute;
+  top: -120px; left: -80px;
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(247,1,76,0.045) 0%, transparent 65%);
+  pointer-events: none;
+}
+
+.page-label {
+  font-family: 'Syne', sans-serif;
+  font-size: 0.6rem;
+  font-weight: 400;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: rgba(247,1,76,0.7);
+  margin-bottom: 28px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+
+.page-label::before {
+  content: '';
+  display: block;
+  width: 28px;
+  height: 1px;
+  background: rgba(247,1,76,0.5);
+  flex-shrink: 0;
+}
+
+.page-label.revealed { opacity: 1; transform: translateY(0); }
+
+.page-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: clamp(52px, 8vw, 110px);
+  letter-spacing: -0.01em;
+  line-height: 0.92;
+  color: var(--off-white);
+  max-width: 900px;
+
+  opacity: 0;
+  transform: translateY(32px);
+  transition: opacity 0.85s cubic-bezier(0.16,1,0.3,1) 0.1s,
+              transform 0.85s cubic-bezier(0.16,1,0.3,1) 0.1s;
+}
+
+.page-title .title-accent {
+  color: var(--red);
+  display: inline-block;
+}
+
+.page-title.revealed { opacity: 1; transform: translateY(0); }
+
+.page-header-sub {
+  margin-top: 40px;
+  font-family: 'Archivo', sans-serif;
+  font-size: 17px;
+  line-height: 1.75;
+  color: rgba(242,240,237,0.45);
+  max-width: 520px;
+
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.7s ease 0.28s, transform 0.7s ease 0.28s;
+}
+
+.page-header-sub.revealed { opacity: 1; transform: translateY(0); }
+
+/* Corner bracket accent */
+.ph-corner {
+  position: absolute;
+  bottom: 36px;
+  right: 80px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1.2s ease 0.6s;
+}
+.ph-corner.revealed { opacity: 1; }
+
+/* ── SECTION BASE ─────────────────────────────────── */
+.section {
+  padding: 100px 80px;
+  position: relative;
+}
+
+.section-rule {
+  width: 100%;
+  height: 1px;
+  background: rgba(247,1,76,0.1);
+  margin-bottom: 64px;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.9s cubic-bezier(0.16,1,0.3,1);
+}
+.section-rule.revealed { transform: scaleX(1); }
+
+.section-label {
+  font-family: 'Syne', sans-serif;
+  font-size: 0.6rem;
+  font-weight: 400;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: rgba(247,1,76,0.6);
+  margin-bottom: 48px;
+
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.6s ease 0.1s, transform 0.6s ease 0.1s;
+}
+.section-label.revealed { opacity: 1; transform: translateY(0); }
+
+/* ── BIO ──────────────────────────────────────────── */
+.bio-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: start;
+}
+
+.bio-left {}
+
+.bio-headline {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: clamp(32px, 4vw, 52px);
+  line-height: 1.08;
+  letter-spacing: 0.01em;
+  color: var(--off-white);
+  margin-bottom: 32px;
+
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.8s cubic-bezier(0.16,1,0.3,1), transform 0.8s cubic-bezier(0.16,1,0.3,1);
+}
+.bio-headline.revealed { opacity: 1; transform: translateY(0); }
+
+.bio-body {
+  font-size: 17px;
+  line-height: 1.85;
+  color: rgba(242,240,237,0.55);
+  max-width: 480px;
+
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.7s ease 0.15s, transform 0.7s ease 0.15s;
+}
+.bio-body.revealed { opacity: 1; transform: translateY(0); }
+
+.bio-body p + p {
+  margin-top: 20px;
+}
+
+.bio-body a {
+  color: var(--red);
+  text-decoration: none;
+}
+.bio-body a:hover {
+  text-decoration: underline;
+}
+
+.bio-right {
+  padding-top: 8px;
+}
+
+/* Stat blocks */
+.stat-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.stat-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 22px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+
+  opacity: 0;
+  transform: translateX(20px);
+  transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.16,1,0.3,1);
+}
+.stat-item:first-child { border-top: 1px solid rgba(255,255,255,0.06); }
+.stat-item.revealed { opacity: 1; transform: translateX(0); }
+
+.stat-label {
+  font-family: 'Syne', sans-serif;
+  font-size: 0.6rem;
+  font-weight: 400;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.22);
+}
+
+.stat-value {
+  font-family: 'Archivo', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--off-white);
+  text-align: right;
+}
+
+/* ── DISCIPLINES ──────────────────────────────────── */
+.disciplines-section {
+  border-top: 1px solid rgba(247,1,76,0.1);
+}
+
+.disciplines-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+}
+
+.disc-card {
+  background: rgba(255,255,255,0.025);
+  padding: 40px 36px;
+  position: relative;
+  overflow: hidden;
+  cursor: default;
+  transition: background 0.2s ease;
+
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.55s ease, transform 0.55s cubic-bezier(0.16,1,0.3,1),
+              background 0.2s ease;
+}
+.disc-card:hover { background: rgba(247,1,76,0.04); }
+.disc-card.revealed { opacity: 1; transform: translateY(0); }
+
+/* Red left edge on hover */
+.disc-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 2px; height: 100%;
+  background: var(--red);
+  transform: scaleY(0);
+  transform-origin: top center;
+  transition: transform 0.22s ease;
+}
+.disc-card:hover::before { transform: scaleY(1); }
+
+.disc-num {
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.56rem;
+  letter-spacing: 0.3em;
+  color: rgba(247,1,76,0.4);
+  text-transform: uppercase;
+  margin-bottom: 20px;
+  display: block;
+}
+
+.disc-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: clamp(18px, 2vw, 24px);
+  letter-spacing: 0.02em;
+  color: var(--off-white);
+  margin-bottom: 14px;
+  line-height: 1.2;
+}
+
+.disc-desc {
+  font-size: 14px;
+  line-height: 1.75;
+  color: rgba(242,240,237,0.36);
+}
+
+/* ── EXPERIENCE / BACKGROUND ──────────────────────── */
+.exp-section {
+  border-top: 1px solid rgba(247,1,76,0.1);
+}
+
+.exp-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  max-width: 860px;
+}
+
+.exp-item {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  gap: 48px;
+  padding: 44px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  align-items: start;
+
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.65s ease, transform 0.65s cubic-bezier(0.16,1,0.3,1);
+}
+.exp-item:first-child { border-top: 1px solid rgba(255,255,255,0.06); }
+.exp-item.revealed { opacity: 1; transform: translateY(0); }
+
+.exp-year {
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.6rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: rgba(247,1,76,0.55);
+  padding-top: 6px;
+}
+
+.exp-content {}
+
+.exp-role {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: clamp(18px, 2vw, 22px);
+  letter-spacing: 0.02em;
+  color: var(--off-white);
+  margin-bottom: 6px;
+}
+
+.exp-org {
+  font-family: 'Archivo', sans-serif;
+  font-size: 13px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.28);
+  margin-bottom: 14px;
+}
+
+.exp-desc {
+  font-size: 15px;
+  line-height: 1.8;
+  color: rgba(242,240,237,0.48);
+  max-width: 560px;
+}
+
+/* ── TOOLS ────────────────────────────────────────── */
+.tools-section {
+  border-top: 1px solid rgba(247,1,76,0.1);
+}
+
+.tools-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tool-tag {
+  font-family: 'Syne', sans-serif;
+  font-size: 0.6rem;
+  font-weight: 400;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.36);
+  border: 1px solid rgba(255,255,255,0.1);
+  padding: 8px 18px;
+  transition: color 0.15s, border-color 0.15s;
+  cursor: default;
+
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.4s ease, transform 0.4s ease,
+              color 0.15s, border-color 0.15s;
+}
+.tool-tag:hover {
+  color: var(--red);
+  border-color: rgba(247,1,76,0.5);
+}
+.tool-tag.revealed { opacity: 1; transform: translateY(0); }
+
+/* ── CTA ──────────────────────────────────────────── */
+.cta-section {
+  border-top: 1px solid rgba(247,1,76,0.1);
+  padding: 120px 80px;
+  position: relative;
+  overflow: hidden;
+}
+
+.cta-section::before {
+  content: '';
+  position: absolute;
+  bottom: -80px; right: -120px;
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, rgba(247,1,76,0.04) 0%, transparent 65%);
+  pointer-events: none;
+}
+
+.cta-eyebrow {
+  font-family: 'Syne', sans-serif;
+  font-size: 0.6rem;
+  font-weight: 400;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: rgba(247,1,76,0.6);
+  margin-bottom: 28px;
+
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.cta-eyebrow.revealed { opacity: 1; transform: translateY(0); }
+
+.cta-headline {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: clamp(40px, 6vw, 80px);
+  letter-spacing: -0.01em;
+  line-height: 0.95;
+  color: var(--off-white);
+  max-width: 700px;
+  margin-bottom: 48px;
+
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.85s cubic-bezier(0.16,1,0.3,1) 0.1s,
+              transform 0.85s cubic-bezier(0.16,1,0.3,1) 0.1s;
+}
+.cta-headline.revealed { opacity: 1; transform: translateY(0); }
+
+.cta-email {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: clamp(18px, 2.4vw, 28px);
+  letter-spacing: 0.02em;
+  color: var(--red);
+  text-decoration: none;
+  position: relative;
+
+  opacity: 0;
+  transform: translateX(-16px);
+  transition: opacity 0.7s ease 0.25s, transform 0.7s ease 0.25s;
+}
+.cta-email::after {
+  content: '';
+  position: absolute;
+  bottom: -3px; left: 0; right: 0;
+  height: 1px;
+  background: var(--red);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.22s ease;
+}
+.cta-email:hover::after { transform: scaleX(1); }
+.cta-email .arrow {
+  font-size: 1.4em;
+  transition: transform 0.18s ease;
+}
+.cta-email:hover .arrow { transform: translateX(5px); }
+.cta-email.revealed { opacity: 1; transform: translateX(0); }
+
+/* ── FOOTER ────────────────────────────────────────── */
+footer {
+  padding: 28px 80px;
+  border-top: 1px solid rgba(247,1,76,0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+footer a {
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  color: rgba(255,255,255,0.26);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+footer a:hover { color: var(--red); }
+
+.footer-logo-mark {
+  display: flex;
+  align-items: center;
+  opacity: 0.7;
+  transition: opacity 0.15s;
+}
+.footer-logo-mark:hover { opacity: 1; }
+
+.footer-copy {
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.14em;
+  color: rgba(255,255,255,0.14);
+}
+</style>
+</head>
+<body>
+
+<!-- ── NAV ──────────────────────────────────────────── -->
+<nav>
+  <a href="concept-B-obsidian-signal-v3.html" class="nav-logo">
+    <svg width="133" height="216" viewBox="0 0 133 216" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M40 27.4277V121.629H45.9307V85.2197H132.139V215.439L92.1377 188.011V93.8105H85.9307V130.22H0V0L40 27.4277Z" fill="#F7014C"/>
+    </svg>
+  </a>
+  <ul class="nav-links">
+    <li><a href="concept-B-obsidian-signal-v3.html#work">Work</a></li>
+    <li><a href="concept-B-obsidian-signal-v3.html#archive">Archive</a></li>
+    <li><a href="about.html" class="active">About</a></li>
+    <li><a href="mailto:loudonnokes@gmail.com">Contact</a></li>
+  </ul>
+</nav>
+
+<!-- ── PAGE HEADER ──────────────────────────────────── -->
+<header class="page-header">
+  <div class="page-label" id="ph-label">About</div>
+  <h1 class="page-title" id="ph-title">
+    Designer.<br>
+    <span class="title-accent">Problem</span><br>
+    Solver.
+  </h1>
+  <p class="page-header-sub" id="ph-sub">
+    UI/UX and graphic designer based in Lawrence, KS — building experiences that are precise, intentional, and built to last.
+  </p>
+  <div class="ph-corner" id="ph-corner">
+    <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+      <path d="M18 32V18H32" stroke="#F7014C" stroke-width="1.5" stroke-opacity="0.45"/>
+    </svg>
+  </div>
+</header>
+
+<!-- ── BIO ──────────────────────────────────────────── -->
+<section class="section bio-section">
+  <div class="section-rule" id="bio-rule"></div>
+  <div class="section-label" id="bio-label">01 — Background</div>
+  <div class="bio-grid">
+    <div class="bio-left">
+      <h2 class="bio-headline" id="bio-headline">I design things<br>that work.</h2>
+      <div class="bio-body" id="bio-body">
+        <p>
+          I'm Loudon Nokes — a UI/UX and graphic designer studying Interaction Design at the University of Kansas. I work at the intersection of visual clarity and human behavior, building interfaces that communicate precisely and feel inevitable.
+        </p>
+        <p>
+          Before design, I spent years as a behavioral interventionist — working with people under pressure taught me how humans actually process information, make decisions, and break down. That background informs everything I build.
+        </p>
+        <p>
+          I move fast, design with intent, and care deeply about the craft of both screen and print.
+        </p>
+      </div>
+    </div>
+    <div class="bio-right">
+      <ul class="stat-list">
+        <li class="stat-item" id="stat-0">
+          <span class="stat-label">Location</span>
+          <span class="stat-value">Lawrence, KS</span>
+        </li>
+        <li class="stat-item" id="stat-1">
+          <span class="stat-label">Education</span>
+          <span class="stat-value">Interaction Design, KU</span>
+        </li>
+        <li class="stat-item" id="stat-2">
+          <span class="stat-label">Disciplines</span>
+          <span class="stat-value">UI/UX · Graphic Design</span>
+        </li>
+        <li class="stat-item" id="stat-3">
+          <span class="stat-label">Status</span>
+          <span class="stat-value" style="color: var(--red);">Available for Work</span>
+        </li>
+        <li class="stat-item" id="stat-4">
+          <span class="stat-label">Contact</span>
+          <span class="stat-value">
+            <a href="mailto:loudonnokes@gmail.com" style="color: var(--off-white); text-decoration: none; transition: color 0.15s;" onmouseover="this.style.color='#F7014C'" onmouseout="this.style.color=''">loudonnokes@gmail.com</a>
+          </span>
+        </li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ── DISCIPLINES ──────────────────────────────────── -->
+<section class="section disciplines-section">
+  <div class="section-rule" id="disc-rule"></div>
+  <div class="section-label" id="disc-label">02 — Disciplines</div>
+  <div class="disciplines-grid">
+    <div class="disc-card" id="disc-0">
+      <span class="disc-num">01</span>
+      <div class="disc-title">UI/UX Design</div>
+      <div class="disc-desc">End-to-end interface design — research, wireframes, prototypes, and final UI. Focused on removing friction and building systems that scale.</div>
+    </div>
+    <div class="disc-card" id="disc-1">
+      <span class="disc-num">02</span>
+      <div class="disc-title">Brand Identity</div>
+      <div class="disc-desc">Visual identity systems, logomarks, typography, and brand language. Built for longevity, not trend cycles.</div>
+    </div>
+    <div class="disc-card" id="disc-2">
+      <span class="disc-num">03</span>
+      <div class="disc-title">Web Design</div>
+      <div class="disc-desc">Designed and coded — motion, interaction, and layout working together. No templates, no shortcuts.</div>
+    </div>
+    <div class="disc-card" id="disc-3">
+      <span class="disc-num">04</span>
+      <div class="disc-title">Interaction Design</div>
+      <div class="disc-desc">Scroll-driven animations, micro-interactions, and interface behaviors that feel physical and considered.</div>
+    </div>
+    <div class="disc-card" id="disc-4">
+      <span class="disc-num">05</span>
+      <div class="disc-title">Print & Editorial</div>
+      <div class="disc-desc">Posters, publications, and editorial layouts. Type as image. Precision measured in points.</div>
+    </div>
+    <div class="disc-card" id="disc-5">
+      <span class="disc-num">06</span>
+      <div class="disc-title">Motion</div>
+      <div class="disc-desc">Title sequences, motion graphics, and animated UI. Timing and easing as a design language.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── EXPERIENCE ───────────────────────────────────── -->
+<section class="section exp-section">
+  <div class="section-rule" id="exp-rule"></div>
+  <div class="section-label" id="exp-label">03 — Experience &amp; Education</div>
+  <ul class="exp-list">
+    <li class="exp-item" id="exp-0">
+      <span class="exp-year">2023 — Present</span>
+      <div class="exp-content">
+        <div class="exp-role">B.F.A. Interaction Design</div>
+        <div class="exp-org">University of Kansas</div>
+        <div class="exp-desc">Studying interaction design, typography, and visual systems. Coursework spans UX research methods, information architecture, and advanced interface prototyping.</div>
+      </div>
+    </li>
+    <li class="exp-item" id="exp-1">
+      <span class="exp-year">2021 — 2023</span>
+      <div class="exp-content">
+        <div class="exp-role">Behavioral Interventionist</div>
+        <div class="exp-org">Applied Behavior Analysis</div>
+        <div class="exp-desc">Worked directly with individuals under high-pressure conditions, developing a deep understanding of how humans process information, form habits, and respond to environmental design. This informs every UX decision I make.</div>
+      </div>
+    </li>
+    <li class="exp-item" id="exp-2">
+      <span class="exp-year">Freelance</span>
+      <div class="exp-content">
+        <div class="exp-role">Designer</div>
+        <div class="exp-org">Independent</div>
+        <div class="exp-desc">Brand identity, web design, and UX work across healthcare, automotive, salon/hospitality, and other industries. Projects include Salon 223, Ford Lincoln Nautilus UI, and various identity systems.</div>
+      </div>
+    </li>
+  </ul>
+</section>
+
+<!-- ── TOOLS ─────────────────────────────────────────── -->
+<section class="section tools-section">
+  <div class="section-rule" id="tools-rule"></div>
+  <div class="section-label" id="tools-label">04 — Tools</div>
+  <div class="tools-grid" id="tools-grid">
+    <span class="tool-tag">Figma</span>
+    <span class="tool-tag">Adobe Illustrator</span>
+    <span class="tool-tag">Adobe Photoshop</span>
+    <span class="tool-tag">Adobe InDesign</span>
+    <span class="tool-tag">After Effects</span>
+    <span class="tool-tag">Premiere Pro</span>
+    <span class="tool-tag">HTML / CSS</span>
+    <span class="tool-tag">JavaScript</span>
+    <span class="tool-tag">Three.js</span>
+    <span class="tool-tag">Framer</span>
+    <span class="tool-tag">Protopie</span>
+    <span class="tool-tag">Principle</span>
+  </div>
+</section>
+
+<!-- ── CTA ───────────────────────────────────────────── -->
+<section class="cta-section">
+  <div class="cta-eyebrow" id="cta-eyebrow">Let's work together</div>
+  <h2 class="cta-headline" id="cta-headline">Have a project<br>in mind?</h2>
+  <a href="mailto:loudonnokes@gmail.com" class="cta-email" id="cta-email">
+    loudonnokes@gmail.com
+    <span class="arrow">↗</span>
+  </a>
+</section>
+
+<!-- ── FOOTER ────────────────────────────────────────── -->
+<footer>
+  <a href="mailto:loudonnokes@gmail.com">loudonnokes@gmail.com</a>
+  <a href="concept-B-obsidian-signal-v3.html" class="footer-logo-mark" aria-label="Loudon Nokes">
+    <svg height="28" width="auto" viewBox="0 0 133 216" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M40 27.4277V121.629H45.9307V85.2197H132.139V215.439L92.1377 188.011V93.8105H85.9307V130.22H0V0L40 27.4277Z" fill="#F7014C"/>
+    </svg>
+  </a>
+  <span class="footer-copy">©2025 Loudon Nokes</span>
+</footer>
+
+<script>
+// ── Reveal helpers ─────────────────────────────────────────────────────────
+function reveal(el, delay = 0) {
+  if (!el) return;
+  setTimeout(() => el.classList.add('revealed'), delay);
+}
+
+function makeObs(threshold = 0.25, rootMargin = '0px 0px -40px 0px') {
+  return (el, onIntersect) => {
+    if (!el) return;
+    const obs = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting) {
+        onIntersect();
+        obs.disconnect();
+      }
+    }, { threshold, rootMargin });
+    obs.observe(el);
+  };
+}
+
+const watch = makeObs(0.2);
+const watchSoon = makeObs(0.1);
+
+// ── Page header ────────────────────────────────────────────────────────────
+window.addEventListener('load', () => {
+  setTimeout(() => reveal(document.getElementById('ph-label')), 180);
+  setTimeout(() => reveal(document.getElementById('ph-title')), 300);
+  setTimeout(() => reveal(document.getElementById('ph-sub')), 500);
+  setTimeout(() => reveal(document.getElementById('ph-corner')), 700);
+});
+
+// ── Bio section ────────────────────────────────────────────────────────────
+watch(document.getElementById('bio-rule'), () => {
+  reveal(document.getElementById('bio-rule'));
+  setTimeout(() => reveal(document.getElementById('bio-label')), 80);
+  setTimeout(() => reveal(document.getElementById('bio-headline')), 180);
+  setTimeout(() => reveal(document.getElementById('bio-body')), 280);
+  ['stat-0','stat-1','stat-2','stat-3','stat-4'].forEach((id, i) => {
+    setTimeout(() => reveal(document.getElementById(id)), 200 + i * 80);
+  });
+});
+
+// ── Disciplines ────────────────────────────────────────────────────────────
+watch(document.getElementById('disc-rule'), () => {
+  reveal(document.getElementById('disc-rule'));
+  setTimeout(() => reveal(document.getElementById('disc-label')), 80);
+  for (let i = 0; i < 6; i++) {
+    const col = i % 3;
+    const row = Math.floor(i / 3);
+    setTimeout(() => reveal(document.getElementById('disc-' + i)), 120 + row * 80 + col * 55);
+  }
+});
+
+// ── Experience ─────────────────────────────────────────────────────────────
+watch(document.getElementById('exp-rule'), () => {
+  reveal(document.getElementById('exp-rule'));
+  setTimeout(() => reveal(document.getElementById('exp-label')), 80);
+  ['exp-0','exp-1','exp-2'].forEach((id, i) => {
+    setTimeout(() => reveal(document.getElementById(id)), 160 + i * 120);
+  });
+});
+
+// ── Tools ──────────────────────────────────────────────────────────────────
+watchSoon(document.getElementById('tools-rule'), () => {
+  reveal(document.getElementById('tools-rule'));
+  setTimeout(() => reveal(document.getElementById('tools-label')), 80);
+  const tags = document.querySelectorAll('.tool-tag');
+  tags.forEach((tag, i) => {
+    setTimeout(() => tag.classList.add('revealed'), 120 + i * 45);
+  });
+});
+
+// ── CTA ────────────────────────────────────────────────────────────────────
+watch(document.getElementById('cta-eyebrow'), () => {
+  reveal(document.getElementById('cta-eyebrow'));
+  setTimeout(() => reveal(document.getElementById('cta-headline')), 100);
+  setTimeout(() => reveal(document.getElementById('cta-email')), 280);
+});
+</script>
+
+</body>
+</html>

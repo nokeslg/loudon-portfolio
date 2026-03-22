@@ -1,0 +1,2504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LOUDON — Concept B: Obsidian Signal v3</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Archivo:wght@400;600&display=swap" rel="stylesheet">
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --red: #F7014C;
+  --black: #1C1D1D;
+  --white: #FFFFFF;
+  --off-white: #F2F0ED;
+}
+
+html { font-size: 16px; scroll-behavior: smooth; }
+
+body {
+  background: var(--black);
+  color: var(--off-white);
+  font-family: 'Archivo', sans-serif;
+  font-size: 16px;
+  line-height: 1.8;
+  overflow-x: hidden;
+  cursor: crosshair;
+}
+
+/* ── NAV ──────────────────────────────────────────── */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 48px;
+  height: 76px;
+  background: rgba(28,29,29,0.5);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-bottom: 1px solid rgba(247,1,76,0.12);
+}
+
+.nav-logo {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+.nav-logo svg {
+  height: 32px;
+  width: auto;
+  display: block;
+}
+
+.nav-links {
+  display: flex;
+  gap: 48px;
+  list-style: none;
+}
+
+.nav-links a {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.88);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.nav-links a:hover { color: var(--red); }
+
+/* ── HERO ──────────────────────────────────────────── */
+.hero {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+#hero-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+}
+
+/* Multi-layer vignette: dark edges + subtle center crimson pulse */
+.hero-vignette {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 72% 58% at 50% 50%, transparent 30%, rgba(28,29,29,0.82) 100%),
+    radial-gradient(ellipse 38% 32% at 50% 46%, rgba(247,1,76,0.055) 0%, transparent 100%);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Grain texture overlay */
+.hero-grain {
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.055'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 3;
+  mix-blend-mode: overlay;
+}
+
+/* ── CORNER BRACKETS ───────────────────────────────── */
+.corner {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  z-index: 5;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1.2s ease 0.8s;
+}
+.corner.visible { opacity: 1; }
+
+.corner svg { display: block; }
+
+.corner--tl { top: 72px; left: 28px; }
+.corner--tr { top: 72px; right: 28px; transform: scaleX(-1); }
+.corner--bl { bottom: 28px; left: 28px; transform: scaleY(-1); }
+.corner--br { bottom: 28px; right: 28px; transform: scale(-1,-1); }
+
+/* ── HUD TEXT OVERLAYS ─────────────────────────────── */
+.hud {
+  position: absolute;
+  z-index: 5;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1s ease 1s;
+}
+.hud.visible { opacity: 1; }
+
+.hud-tl { top: 92px; left: 52px; }
+.hud-tr { top: 92px; right: 52px; text-align: right; }
+
+.hud-name {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 0.78rem;
+  color: rgba(242,240,237,1);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-bottom: 7px;
+}
+
+.hud-role {
+  font-family: 'Archivo', sans-serif;
+  font-weight: 400;
+  font-size: 0.6rem;
+  letter-spacing: 0.26em;
+  color: rgba(255,255,255,0.2);
+  text-transform: uppercase;
+}
+
+.hud-coords {
+  font-family: 'Archivo', sans-serif;
+  font-weight: 400;
+  font-size: 0.58rem;
+  letter-spacing: 0.2em;
+  color: rgba(247,1,76,0.55);
+  text-transform: uppercase;
+  margin-bottom: 5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.hud-avail {
+  font-family: 'Archivo', sans-serif;
+  font-weight: 400;
+  font-size: 0.56rem;
+  letter-spacing: 0.2em;
+  color: rgba(255,255,255,0.16);
+  text-transform: uppercase;
+}
+
+/* Availability dot */
+.avail-dot {
+  display: inline-block;
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--red);
+  margin-right: 6px;
+  animation: dotPulse 2.5s ease-in-out infinite;
+  vertical-align: middle;
+  position: relative;
+  top: -1px;
+}
+
+@keyframes dotPulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; box-shadow: 0 0 6px var(--red); }
+}
+
+/* ── SIDE READOUT (right edge, vertical) ───────────────────────────────────── */
+.hud-side {
+  position: absolute;
+  right: 52px;
+  bottom: 120px;
+  writing-mode: vertical-rl;
+  z-index: 5;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1s ease 1.2s;
+}
+.hud-side.visible { opacity: 1; }
+
+.hud-side-text {
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.54rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.12);
+}
+
+/* ── SCROLL HINT ───────────────────────────────────── */
+.scroll-hint {
+  position: absolute;
+  bottom: 44px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1s ease 1.4s;
+}
+.scroll-hint.visible { opacity: 1; }
+
+.scroll-label {
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.54rem;
+  letter-spacing: 0.38em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.14);
+}
+
+.scroll-line {
+  width: 1px;
+  height: 40px;
+  background: linear-gradient(to bottom, rgba(247,1,76,0.65), transparent);
+  animation: scrollPulse 2.4s ease-in-out infinite;
+}
+
+@keyframes scrollPulse {
+  0%, 100% { opacity: 0.3; transform: scaleY(1); transform-origin: top; }
+  50% { opacity: 1; transform: scaleY(1.14); transform-origin: top; }
+}
+
+/* Thin bottom accent line */
+.hero-bottom-line {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(247,1,76,0.3) 30%, rgba(247,1,76,0.3) 70%, transparent);
+  z-index: 5;
+}
+
+/* ── LOADING SCREEN ─────────────────────────────────── */
+#hero-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+  background: var(--black);
+  transition: opacity 1.4s ease, visibility 1.4s ease;
+}
+
+#hero-loading.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.loading-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
+
+.loading-text {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 0.62rem;
+  letter-spacing: 0.55em;
+  color: rgba(247,1,76,0.45);
+  text-transform: uppercase;
+  animation: blink 1.4s ease-in-out infinite;
+}
+
+.loading-bar-track {
+  width: 140px;
+  height: 1px;
+  background: rgba(247,1,76,0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.loading-bar-fill {
+  position: absolute;
+  top: 0; left: -100%;
+  width: 100%;
+  height: 100%;
+  background: var(--red);
+  animation: loadFill 1.8s ease-in-out infinite;
+}
+
+@keyframes loadFill {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 1; }
+}
+
+/* ── WORK SECTION ────────────────────────────────────── */
+.work {
+  padding: 72px 48px 48px;
+  position: relative;
+  z-index: 2;
+}
+
+.work-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  position: relative;
+  /* entrance animation */
+  opacity: 0;
+  transform: translateY(32px);
+  transition: opacity 0.75s ease, transform 0.75s cubic-bezier(0.16,1,0.3,1);
+}
+
+.work-header.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* animated rule line replacing the static border-bottom */
+.work-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 1px;
+  background: rgba(247,1,76,0.18);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 1s cubic-bezier(0.16,1,0.3,1) 0.28s;
+}
+
+.work-header.revealed::after {
+  transform: scaleX(1);
+}
+
+.work-headline {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: clamp(24px, 3.5vw, 44px);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--off-white);
+}
+
+.work-count {
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.6rem;
+  letter-spacing: 0.28em;
+  color: rgba(247,1,76,0.4);
+  text-transform: uppercase;
+}
+
+.work-list { display: flex; flex-direction: column; }
+
+.work-item {
+  display: grid;
+  grid-template-columns: 56px 1fr auto auto;
+  align-items: center;
+  gap: 32px;
+  padding: 32px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  position: relative;
+  cursor: pointer;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(36px);
+  transition:
+    opacity 0.72s ease,
+    transform 0.72s cubic-bezier(0.16,1,0.3,1),
+    padding-left 0.22s cubic-bezier(0.16,1,0.3,1),
+    background 0.22s;
+}
+
+.work-item::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 2px;
+  background: var(--red);
+  transform: scaleY(0);
+  transform-origin: center;
+  transition: transform 0.22s cubic-bezier(0.16,1,0.3,1);
+}
+
+.work-item:hover { padding-left: 18px; background: rgba(247,1,76,0.025); }
+.work-item:hover::before { transform: scaleY(1); }
+
+.work-item.revealed { opacity: 1; transform: translateY(0); }
+
+.wi-num {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 0.6rem;
+  letter-spacing: 0.28em;
+  color: rgba(255,255,255,0.25);
+  font-weight: 400;
+}
+
+.wi-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: clamp(20px, 2.6vw, 36px);
+  color: var(--off-white);
+  letter-spacing: 0.02em;
+  transition: color 0.15s;
+}
+
+.work-item:hover .wi-title { color: var(--red); }
+
+.wi-cat {
+  font-family: 'Archivo', sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.18);
+}
+
+.wi-arrow {
+  font-size: 1rem;
+  color: var(--red);
+  opacity: 0;
+  transform: translate(-6px, 6px);
+  transition: opacity 0.18s, transform 0.22s cubic-bezier(0.16,1,0.3,1);
+}
+
+.work-item:hover .wi-arrow { opacity: 1; transform: translate(0,0); }
+
+a.work-item { text-decoration: none; color: inherit; }
+
+/* ── STATEMENT ───────────────────────────────────────── */
+.statement {
+  background: var(--red);
+  padding: 96px 48px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Diagonal shadow slab — gives it drama */
+.statement::before {
+  content: '';
+  position: absolute;
+  top: -30%; right: -8%;
+  width: 55%; height: 200%;
+  background: rgba(0,0,0,0.09);
+  transform: rotate(-10deg);
+  pointer-events: none;
+}
+
+/* Ghost large number */
+.statement::after {
+  content: '—';
+  position: absolute;
+  right: 48px; bottom: -20px;
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: clamp(120px, 16vw, 220px);
+  color: rgba(0,0,0,0.07);
+  line-height: 1;
+  pointer-events: none;
+  user-select: none;
+}
+
+.statement-text {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: clamp(36px, 5.5vw, 76px);
+  line-height: 0.96;
+  letter-spacing: 0.02em;
+  color: var(--black);
+  text-transform: uppercase;
+  position: relative;
+  z-index: 1;
+  max-width: 800px;
+}
+
+.statement-sub {
+  margin-top: 32px;
+  font-family: 'Archivo', sans-serif;
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  color: rgba(28,29,29,0.45);
+  text-transform: uppercase;
+  position: relative;
+  z-index: 1;
+}
+
+
+/* ── FOOTER ────────────────────────────────────────── */
+footer {
+  padding: 36px 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 2px solid var(--red);
+}
+
+footer a {
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  color: rgba(255,255,255,0.32);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+footer a:hover { color: var(--red); }
+
+.footer-logo-mark {
+  display: flex;
+  align-items: center;
+  opacity: 0.7;
+  transition: opacity 0.15s;
+}
+.footer-logo-mark:hover { opacity: 1; }
+
+footer span.footer-copy {
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  color: rgba(255,255,255,0.14);
+  text-transform: uppercase;
+}
+
+/* ── SCROLL REVEAL & MICRO-ANIMATIONS ──────────────── */
+
+/* Archive header — same treatment as work header */
+.archive-header {
+  position: relative;
+  padding-bottom: 20px;
+  margin-bottom: 0;
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.16,1,0.3,1);
+}
+.archive-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 1px;
+  background: rgba(247,1,76,0.15);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.9s cubic-bezier(0.16,1,0.3,1) 0.22s;
+}
+.archive-header.revealed { opacity: 1; transform: translateY(0); }
+.archive-header.revealed::after { transform: scaleX(1); }
+
+/* Add spacing back below archive header now that it has padding-bottom */
+.archive-filters { margin-top: 32px; }
+
+/* Archive filter pills fade in */
+.archive-filters {
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.6s ease 0.35s, transform 0.6s ease 0.35s;
+}
+.archive-filters.revealed { opacity: 1; transform: translateY(0); }
+
+/* Gallery cards staggered entrance */
+.gallery-card {
+  opacity: 0;
+  transform: translateY(22px);
+  transition:
+    opacity 0.55s ease,
+    transform 0.55s cubic-bezier(0.16,1,0.3,1);
+}
+.gallery-card.revealed { opacity: 1; transform: translateY(0); }
+
+/* Statement section entrance */
+.statement-text {
+  opacity: 0;
+  transform: translateX(-28px);
+  transition: opacity 0.85s cubic-bezier(0.16,1,0.3,1), transform 0.85s cubic-bezier(0.16,1,0.3,1);
+}
+.statement-sub {
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.6s ease 0.32s, transform 0.6s ease 0.32s;
+}
+.statement.revealed .statement-text { opacity: 1; transform: translateX(0); }
+.statement.revealed .statement-sub  { opacity: 1; transform: translateY(0); }
+
+/* Marquee fade-in */
+.marquee-section {
+  opacity: 0;
+  transition: opacity 0.9s ease;
+}
+.marquee-section.revealed { opacity: 1; }
+
+/* ── PARALLAX ───────────────────────────────────────── */
+.statement::before {
+  will-change: transform;
+  /* base transform + parallax offset via CSS var */
+  transform: rotate(-10deg) translateY(var(--parallax-slab, 0px));
+}
+
+/* Floating parallax accent dots in work section */
+.work-accent {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  will-change: transform;
+}
+.work-accent-a {
+  top: 18%; right: 6%;
+  width: 180px; height: 180px;
+  background: radial-gradient(circle, rgba(247,1,76,0.055) 0%, transparent 70%);
+}
+.work-accent-b {
+  bottom: 12%; left: 3%;
+  width: 120px; height: 120px;
+  background: radial-gradient(circle, rgba(247,1,76,0.04) 0%, transparent 70%);
+}
+
+/* ── ARCHIVE GALLERY ──────────────────────────────── */
+.archive {
+  padding: 100px 48px;
+  border-top: 1px solid rgba(247,1,76,0.08);
+}
+
+.archive-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 40px;
+}
+
+.archive-headline {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: clamp(24px, 3.5vw, 44px);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--off-white);
+}
+
+.archive-count {
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.2);
+}
+
+/* Filter pills */
+.archive-filters {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 48px;
+}
+
+.af-btn {
+  font-family: 'Syne', sans-serif;
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.32);
+  border: 1px solid rgba(255,255,255,0.1);
+  background: none;
+  padding: 6px 16px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.af-btn:hover,
+.af-btn.active {
+  color: var(--red);
+  border-color: var(--red);
+}
+
+/* Gallery grid */
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+}
+
+.gallery-card {
+  position: relative;
+  cursor: pointer;
+  overflow: hidden;
+  background: #111112;
+}
+
+/* Thumbnail */
+.gc-thumb {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+}
+
+/* Placeholder gradient — each card gets a unique tint via nth-child */
+.gc-thumb::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(135deg, rgba(247,1,76,0.08) 0%, rgba(28,29,29,0.6) 100%);
+  transition: opacity 0.3s;
+}
+
+.gallery-card:nth-child(3n+2) .gc-thumb::before {
+  background: linear-gradient(135deg, rgba(247,1,76,0.04) 0%, rgba(10,10,10,0.8) 100%);
+}
+.gallery-card:nth-child(3n+3) .gc-thumb::before {
+  background: linear-gradient(225deg, rgba(247,1,76,0.06) 0%, rgba(20,10,14,0.7) 100%);
+}
+
+/* Placeholder label */
+.gc-thumb::after {
+  content: attr(data-label);
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.5rem;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: rgba(247,1,76,0.18);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* Hover overlay */
+.gc-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(10,5,8,0.72);
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 20px;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.22s ease, transform 0.22s cubic-bezier(0.16,1,0.3,1);
+  backdrop-filter: blur(2px);
+}
+
+.gallery-card:hover .gc-overlay {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.gc-hover-label {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  color: var(--white);
+  text-transform: uppercase;
+}
+
+.gc-hover-arrow {
+  font-size: 1.1rem;
+  color: var(--red);
+}
+
+/* Card info bar */
+.gc-info {
+  padding: 16px 18px 18px;
+  border-top: 1px solid rgba(255,255,255,0.04);
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.gc-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 0.82rem;
+  letter-spacing: 0.02em;
+  color: var(--white);
+  flex: 1;
+}
+
+.gc-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.gc-year {
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  color: rgba(255,255,255,0.2);
+}
+
+.gc-cat {
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.58rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--red);
+  opacity: 0.6;
+}
+
+/* Hidden state for filter */
+.gallery-card.hidden {
+  display: none;
+}
+
+/* ── WORK HOVER PREVIEW ─────────────────────────────── */
+.work-hover-preview {
+  position: fixed;
+  width: 320px;
+  height: 210px;
+  pointer-events: none;
+  z-index: 200;
+  opacity: 0;
+  transform: scale(0.94) translateY(10px);
+  transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.16,1,0.3,1);
+  border: 1px solid rgba(247,1,76,0.2);
+  overflow: hidden;
+  background: #0e0e0f;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.6), 0 0 0 1px rgba(247,1,76,0.06);
+}
+.work-hover-preview.visible {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+}
+.work-hover-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  display: block;
+}
+.whp-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 22px;
+  position: relative;
+  background: linear-gradient(135deg, rgba(247,1,76,0.07) 0%, #0a0a0b 100%);
+}
+.whp-num {
+  position: absolute;
+  top: 18px; right: 22px;
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: clamp(52px, 8vw, 80px);
+  color: rgba(247,1,76,0.07);
+  line-height: 1;
+  user-select: none;
+}
+.whp-bar {
+  width: 28px;
+  height: 2px;
+  background: var(--red);
+  margin-bottom: 12px;
+}
+.whp-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 1rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--off-white);
+  margin-bottom: 6px;
+}
+.whp-cat {
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.58rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.22);
+}
+.whp-soon {
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.52rem;
+  letter-spacing: 0.36em;
+  text-transform: uppercase;
+  color: rgba(247,1,76,0.3);
+  margin-top: 8px;
+}
+
+/* ── CARD CAROUSEL ───────────────────────────────────── */
+.card-carousel {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 0 8px;
+}
+
+.card-track {
+  position: relative;
+  width: 100%;
+  height: 455px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+}
+
+/* Playing card */
+.playing-card {
+  position: absolute;
+  width: 300px;
+  height: 420px;
+  cursor: pointer;
+  transition:
+    transform 0.52s cubic-bezier(0.16,1,0.3,1),
+    opacity 0.4s ease,
+    filter 0.4s ease;
+  user-select: none;
+}
+
+.playing-card.pc-active {
+  transform: translateX(0) scale(1) rotate(0deg);
+  z-index: 3;
+  filter: none;
+}
+.playing-card.pc-prev {
+  transform: translateX(-345px) scale(0.78) rotate(-7deg);
+  z-index: 2;
+  opacity: 0.65;
+  filter: brightness(0.7);
+}
+.playing-card.pc-next {
+  transform: translateX(345px) scale(0.78) rotate(7deg);
+  z-index: 2;
+  opacity: 0.65;
+  filter: brightness(0.7);
+}
+.playing-card.pc-far-prev {
+  transform: translateX(-530px) scale(0.6) rotate(-12deg);
+  z-index: 1;
+  opacity: 0.25;
+  filter: brightness(0.5);
+  pointer-events: none;
+}
+.playing-card.pc-far-next {
+  transform: translateX(530px) scale(0.6) rotate(12deg);
+  z-index: 1;
+  opacity: 0.25;
+  filter: brightness(0.5);
+  pointer-events: none;
+}
+.playing-card.pc-hidden {
+  transform: translateX(0) scale(0.5);
+  z-index: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Card face */
+.pc-face {
+  width: 100%;
+  height: 100%;
+  background: #0D0D0E;
+  border: 1px solid rgba(255,255,255,0.14);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  box-shadow:
+    0 24px 60px rgba(0,0,0,0.45),
+    inset 0 1px 0 rgba(255,255,255,0.04);
+}
+
+/* Subtle diagonal texture line */
+.pc-face::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 18px,
+    rgba(255,255,255,0.022) 18px,
+    rgba(255,255,255,0.022) 19px
+  );
+  pointer-events: none;
+}
+
+/* Corner indices */
+.pc-corner {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  z-index: 2;
+}
+.pc-corner--tl { top: 12px; left: 14px; }
+.pc-corner--br { bottom: 12px; right: 14px; transform: rotate(180deg); }
+
+.pc-idx {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 0.85rem;
+  letter-spacing: 0.06em;
+  color: rgba(255,255,255,0.7);
+  line-height: 1;
+}
+.pc-corner-lmark {
+  width: 12px;
+  height: auto;
+  display: block;
+}
+
+/* Center art area */
+.pc-art {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.pc-glyph {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 116px;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: rgba(255,255,255,0.92);
+  text-shadow: 0 0 48px rgba(255,255,255,0.1);
+}
+.pc-face.pc-soon .pc-glyph {
+  font-size: 56px;
+  color: rgba(255,255,255,0.18);
+  text-shadow: none;
+}
+
+.pc-logo {
+  width: 158px;
+  height: 158px;
+  object-fit: contain;
+  display: block;
+}
+
+.pc-rule {
+  width: 40px;
+  height: 1px;
+  background: rgba(255,255,255,0.25);
+}
+
+.pc-label {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.88);
+  text-align: center;
+}
+.pc-face.pc-soon .pc-label { color: rgba(255,255,255,0.22); }
+
+/* Ghost L-mark background watermark */
+.pc-watermark {
+  position: absolute;
+  bottom: -16px;
+  right: -12px;
+  opacity: 0.04;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Nav buttons */
+.carousel-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: 1px solid rgba(28,29,29,0.15);
+  color: rgba(28,29,29,0.4);
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+  z-index: 10;
+}
+.carousel-btn:hover {
+  color: var(--red);
+  border-color: rgba(247,1,76,0.5);
+  background: rgba(247,1,76,0.05);
+}
+.carousel-btn--prev { left: 48px; }
+.carousel-btn--next { right: 48px; }
+
+/* Dot indicators */
+.carousel-dots {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-top: 14px;
+}
+.carousel-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: transparent;
+  border: 1.5px solid rgba(28,29,29,0.22);
+  cursor: pointer;
+  transition: background 0.22s ease, border-color 0.22s ease, transform 0.22s ease;
+  flex-shrink: 0;
+}
+.carousel-dot:hover {
+  border-color: rgba(247,1,76,0.5);
+}
+.carousel-dot.active {
+  background: var(--red);
+  border-color: var(--red);
+  transform: scale(1.2);
+}
+
+/* Project info below cards */
+.card-info {
+  text-align: center;
+  padding: 20px 0 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.card-info-num {
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.42em;
+  color: rgba(247,1,76,0.55);
+  text-transform: uppercase;
+}
+.card-info-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: clamp(30px, 4.4vw, 58px);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--black);
+  transition: opacity 0.25s ease;
+  line-height: 1;
+}
+.card-info-cat {
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(28,29,29,0.42);
+  transition: opacity 0.25s ease;
+  margin-top: 4px;
+}
+.card-info-link {
+  margin-top: 20px;
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 0.66rem;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--red);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(247,1,76,0.35);
+  padding-bottom: 3px;
+  transition: border-color 0.15s, opacity 0.25s;
+}
+.card-info-link:hover { border-color: var(--red); }
+.card-info-link[hidden] { display: none; }
+
+/* ── HAMBURGER + MOBILE MENU ─────────────────────────── */
+.nav-hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  z-index: 200;
+}
+.nav-hamburger span {
+  display: block;
+  width: 24px;
+  height: 2px;
+  background: var(--off-white);
+  border-radius: 2px;
+  transition: transform 0.28s ease, opacity 0.28s ease;
+}
+.nav-hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.nav-hamburger.open span:nth-child(2) { opacity: 0; }
+.nav-hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+.nav-mobile-menu {
+  position: fixed;
+  inset: 0;
+  background: rgba(20,20,20,0.97);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  z-index: 98;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+.nav-mobile-menu.open {
+  opacity: 1;
+  pointer-events: all;
+}
+.nav-mobile-menu ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 44px;
+}
+.nav-mobile-menu a {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: clamp(32px, 9vw, 56px);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--off-white);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.nav-mobile-menu a:hover { color: var(--red); }
+
+/* ── MOBILE ──────────────────────────────────────────── */
+@media (max-width: 768px) {
+
+  /* Nav */
+  nav { padding: 0 24px; }
+  .nav-links { display: none; }
+  .nav-hamburger { display: flex; }
+
+  /* Hero HUD */
+  .hud-tl { top: 88px; left: 24px; }
+  .hud-tr { top: 88px; right: 24px; }
+  .hud-side { display: none; }
+  .corner--tl { top: 82px; left: 14px; }
+  .corner--tr { top: 82px; right: 14px; }
+  .scroll-hint { bottom: 28px; }
+
+  /* Work */
+  .work { padding: 52px 20px 36px; }
+  .work-headline { font-size: clamp(22px, 6vw, 34px); }
+  .card-carousel { padding: 4px 0; }
+  .card-track { height: 310px; }
+
+  .playing-card { width: 186px; height: 260px; }
+  .playing-card.pc-prev  { transform: translateX(-162px) scale(0.78) rotate(-7deg); }
+  .playing-card.pc-next  { transform: translateX(162px)  scale(0.78) rotate(7deg);  }
+  .playing-card.pc-far-prev,
+  .playing-card.pc-far-next { opacity: 0; pointer-events: none; }
+
+  .pc-glyph { font-size: 70px; }
+  .pc-logo  { width: 96px; height: 96px; }
+  .pc-label { font-size: 0.72rem; }
+  .pc-idx   { font-size: 0.7rem; }
+
+  .carousel-btn { width: 36px; height: 36px; font-size: 0.85rem; }
+  .carousel-btn--prev { left: 6px; }
+  .carousel-btn--next { right: 6px; }
+
+  .carousel-dots { margin-top: 12px; gap: 10px; }
+  .carousel-dot  { width: 8px; height: 8px; }
+
+  .card-info { padding: 14px 0 28px; gap: 3px; }
+  .card-info-title { font-size: clamp(24px, 7vw, 38px); }
+  .card-info-cat   { font-size: 0.6rem; }
+  .card-info-link  { margin-top: 12px; }
+
+  /* Archive */
+  .archive { padding: 60px 20px; }
+  .gallery-grid { grid-template-columns: repeat(2, 1fr); }
+  .archive-filters { flex-wrap: wrap; }
+
+  /* Statement */
+  .statement { padding: 72px 24px; }
+
+  /* Footer */
+  footer {
+    padding: 32px 24px;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .gallery-grid { grid-template-columns: 1fr; }
+
+  .playing-card { width: 168px; height: 235px; }
+  .playing-card.pc-prev  { transform: translateX(-145px) scale(0.78) rotate(-7deg); opacity: 0.5; }
+  .playing-card.pc-next  { transform: translateX(145px)  scale(0.78) rotate(7deg);  opacity: 0.5; }
+
+  .pc-glyph { font-size: 60px; }
+  .pc-logo  { width: 82px; height: 82px; }
+
+  .hud-name { font-size: 0.68rem; }
+}
+
+/* ── LIGHT THEME — everything below the hero ─────────── */
+.work,
+.archive,
+footer {
+  background: #F2F0ED;
+}
+
+/* Work */
+.work-headline { color: var(--black); }
+.work-count { color: rgba(247,1,76,0.5); }
+.work-item { border-bottom-color: rgba(28,29,29,0.09); }
+.work-item:hover { background: rgba(247,1,76,0.04); }
+.wi-num { color: rgba(28,29,29,0.28); }
+.wi-title { color: var(--black); }
+.wi-cat { color: rgba(28,29,29,0.4); }
+a.work-item { color: var(--black); }
+
+/* Archive */
+.archive { border-top-color: rgba(247,1,76,0.12); }
+.archive-headline { color: var(--black); }
+.archive-count { color: rgba(28,29,29,0.35); }
+.af-btn {
+  color: rgba(28,29,29,0.4);
+  border-color: rgba(28,29,29,0.15);
+}
+.af-btn:hover,
+.af-btn.active {
+  color: var(--red);
+  border-color: var(--red);
+}
+.gallery-card { background: #E8E6E3; }
+.gc-thumb::before {
+  background: linear-gradient(135deg, rgba(247,1,76,0.07) 0%, rgba(200,198,195,0.55) 100%);
+}
+.gallery-card:nth-child(3n+2) .gc-thumb::before {
+  background: linear-gradient(135deg, rgba(247,1,76,0.04) 0%, rgba(190,188,185,0.6) 100%);
+}
+.gallery-card:nth-child(3n+3) .gc-thumb::before {
+  background: linear-gradient(225deg, rgba(247,1,76,0.05) 0%, rgba(195,193,190,0.55) 100%);
+}
+.gc-thumb::after { color: rgba(247,1,76,0.3); }
+.gc-info { border-top-color: rgba(28,29,29,0.06); }
+.gc-title { color: var(--black); }
+.gc-year { color: rgba(28,29,29,0.3); }
+
+/* Footer */
+footer { border-top-color: var(--red); }
+footer a { color: rgba(28,29,29,0.45); }
+footer a:hover { color: var(--red); }
+footer span.footer-copy { color: rgba(28,29,29,0.28); }
+</style>
+</head>
+<body>
+
+<!-- ── NAV ──────────────────────────────────────── -->
+<nav>
+  <a href="#" class="nav-logo">
+    <svg width="133" height="216" viewBox="0 0 133 216" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M40 27.4277V121.629H45.9307V85.2197H132.139V215.439L92.1377 188.011V93.8105H85.9307V130.22H0V0L40 27.4277Z" fill="#F7014C"/>
+    </svg>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#">Work</a></li>
+    <li><a href="#archive">Archive</a></li>
+    <li><a href="#">About</a></li>
+    <li><a href="#">Contact</a></li>
+  </ul>
+  <button class="nav-hamburger" id="nav-hamburger" aria-label="Toggle menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- Mobile menu overlay -->
+<div class="nav-mobile-menu" id="nav-mobile-menu">
+  <ul>
+    <li><a href="#" onclick="closeMobileMenu()">Work</a></li>
+    <li><a href="#archive" onclick="closeMobileMenu()">Archive</a></li>
+    <li><a href="about.html" onclick="closeMobileMenu()">About</a></li>
+    <li><a href="#" onclick="closeMobileMenu()">Contact</a></li>
+  </ul>
+</div>
+
+<!-- ── HERO ─────────────────────────────────────── -->
+<section class="hero">
+  <canvas id="hero-canvas"></canvas>
+
+  <div id="hero-loading">
+    <div class="loading-inner">
+      <div class="loading-text">Initializing</div>
+      <div class="loading-bar-track"><div class="loading-bar-fill"></div></div>
+    </div>
+  </div>
+
+  <!-- Atmospheric overlays -->
+  <div class="hero-vignette"></div>
+  <div class="hero-grain"></div>
+  <div class="hero-bottom-line"></div>
+
+  <!-- Corner brackets -->
+  <div class="corner corner--tl" id="c-tl">
+    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+      <path d="M0 14V0H14" stroke="#F7014C" stroke-width="1.5" stroke-opacity="0.55"/>
+    </svg>
+  </div>
+  <div class="corner corner--tr" id="c-tr">
+    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+      <path d="M0 14V0H14" stroke="#F7014C" stroke-width="1.5" stroke-opacity="0.55"/>
+    </svg>
+  </div>
+  <div class="corner corner--bl" id="c-bl">
+    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+      <path d="M0 14V0H14" stroke="#F7014C" stroke-width="1.5" stroke-opacity="0.55"/>
+    </svg>
+  </div>
+  <div class="corner corner--br" id="c-br">
+    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+      <path d="M0 14V0H14" stroke="#F7014C" stroke-width="1.5" stroke-opacity="0.55"/>
+    </svg>
+  </div>
+
+  <!-- HUD: top-left identity -->
+  <div class="hud hud-tl" id="hud-tl">
+    <div class="hud-name">Loudon Nokes</div>
+    <div class="hud-role">UI/UX · Graphic Design</div>
+  </div>
+
+  <!-- HUD: top-right -->
+  <div class="hud hud-tr" id="hud-tr">
+    <div class="hud-avail"><span class="avail-dot"></span>Lawrence, KS · Available for Work</div>
+  </div>
+
+  <!-- Side vertical text -->
+  <div class="hud-side" id="hud-side">
+    <div class="hud-side-text">Scroll to Explore</div>
+  </div>
+
+  <!-- Scroll hint bottom-center -->
+  <div class="scroll-hint" id="scroll-hint">
+    <span class="scroll-label">Scroll</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- ── WORK ─────────────────────────────────────── -->
+<section class="work" style="position:relative; overflow:hidden;">
+  <div class="work-accent work-accent-a" id="work-accent-a"></div>
+  <div class="work-accent work-accent-b" id="work-accent-b"></div>
+  <div class="work-header">
+    <h2 class="work-headline">Selected Work</h2>
+    <span class="work-count">06 Projects</span>
+  </div>
+
+  <!-- Card Carousel -->
+  <div class="card-carousel">
+    <div class="card-track" id="card-track"></div>
+    <button class="carousel-btn carousel-btn--prev" id="carousel-prev" aria-label="Previous project">&#8592;</button>
+    <button class="carousel-btn carousel-btn--next" id="carousel-next" aria-label="Next project">&#8594;</button>
+  </div>
+
+  <div class="carousel-dots" id="carousel-dots"></div>
+
+  <!-- Active project info -->
+  <div class="card-info">
+    <div class="card-info-num" id="card-info-num"></div>
+    <div class="card-info-title" id="card-info-title"></div>
+    <div class="card-info-cat" id="card-info-cat"></div>
+    <a class="card-info-link" id="card-info-link" href="#"></a>
+  </div>
+</section>
+
+<!-- ── ARCHIVE ────────────────────────────────────── -->
+<section class="archive" id="archive">
+  <div class="archive-header">
+    <h2 class="archive-headline">Archive</h2>
+    <span class="archive-count">14 Projects</span>
+  </div>
+
+  <div class="archive-filters">
+    <button class="af-btn active" data-filter="all">All</button>
+    <button class="af-btn" data-filter="ux">UX Design</button>
+    <button class="af-btn" data-filter="brand">Branding</button>
+    <button class="af-btn" data-filter="web">Web</button>
+    <button class="af-btn" data-filter="print">Print</button>
+    <button class="af-btn" data-filter="motion">Motion</button>
+  </div>
+
+  <div class="gallery-grid">
+
+    <!-- 2025 -->
+    <div class="gallery-card" data-cat="ux">
+      <div class="gc-thumb" data-label="PROJECT IMAGE">
+        <div class="gc-overlay">
+          <span class="gc-hover-label">Healthcare UX Redesign</span>
+          <span class="gc-hover-arrow">↗</span>
+        </div>
+      </div>
+      <div class="gc-info">
+        <span class="gc-title">Healthcare UX Redesign</span>
+        <div class="gc-meta">
+          <span class="gc-year">2025</span>
+          <span class="gc-cat">UX</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="gallery-card" data-cat="brand">
+      <div class="gc-thumb" data-label="PROJECT IMAGE">
+        <div class="gc-overlay">
+          <span class="gc-hover-label">Salon 223 Brand Evolution</span>
+          <span class="gc-hover-arrow">↗</span>
+        </div>
+      </div>
+      <div class="gc-info">
+        <span class="gc-title">Salon 223 Brand Evolution</span>
+        <div class="gc-meta">
+          <span class="gc-year">2025</span>
+          <span class="gc-cat">Branding</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="gallery-card" data-cat="web">
+      <div class="gc-thumb" data-label="PROJECT IMAGE">
+        <div class="gc-overlay">
+          <span class="gc-hover-label">Portfolio — Obsidian Signal</span>
+          <span class="gc-hover-arrow">↗</span>
+        </div>
+      </div>
+      <div class="gc-info">
+        <span class="gc-title">Portfolio — Obsidian Signal</span>
+        <div class="gc-meta">
+          <span class="gc-year">2025</span>
+          <span class="gc-cat">Web</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2024 -->
+    <div class="gallery-card" data-cat="ux">
+      <div class="gc-thumb" data-label="PROJECT IMAGE">
+        <div class="gc-overlay">
+          <span class="gc-hover-label">Ford Lincoln Nautilus UI</span>
+          <span class="gc-hover-arrow">↗</span>
+        </div>
+      </div>
+      <div class="gc-info">
+        <span class="gc-title">Ford Lincoln Nautilus UI</span>
+        <div class="gc-meta">
+          <span class="gc-year">2024</span>
+          <span class="gc-cat">UX</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="gallery-card" data-cat="brand">
+      <div class="gc-thumb" data-label="PROJECT IMAGE">
+        <div class="gc-overlay">
+          <span class="gc-hover-label">— Coming Soon</span>
+          <span class="gc-hover-arrow">↗</span>
+        </div>
+      </div>
+      <div class="gc-info">
+        <span class="gc-title">— Coming Soon</span>
+        <div class="gc-meta">
+          <span class="gc-year">2024</span>
+          <span class="gc-cat">Branding</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="gallery-card" data-cat="print">
+      <div class="gc-thumb" data-label="PROJECT IMAGE">
+        <div class="gc-overlay">
+          <span class="gc-hover-label">— Coming Soon</span>
+          <span class="gc-hover-arrow">↗</span>
+        </div>
+      </div>
+      <div class="gc-info">
+        <span class="gc-title">— Coming Soon</span>
+        <div class="gc-meta">
+          <span class="gc-year">2024</span>
+          <span class="gc-cat">Print</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="gallery-card" data-cat="ux">
+      <div class="gc-thumb" data-label="PROJECT IMAGE">
+        <div class="gc-overlay">
+          <span class="gc-hover-label">— Coming Soon</span>
+          <span class="gc-hover-arrow">↗</span>
+        </div>
+      </div>
+      <div class="gc-info">
+        <span class="gc-title">— Coming Soon</span>
+        <div class="gc-meta">
+          <span class="gc-year">2024</span>
+          <span class="gc-cat">UX</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2023 -->
+    <div class="gallery-card" data-cat="brand">
+      <div class="gc-thumb" data-label="PROJECT IMAGE">
+        <div class="gc-overlay">
+          <span class="gc-hover-label">— Coming Soon</span>
+          <span class="gc-hover-arrow">↗</span>
+        </div>
+      </div>
+      <div class="gc-info">
+        <span class="gc-title">— Coming Soon</span>
+        <div class="gc-meta">
+          <span class="gc-year">2023</span>
+          <span class="gc-cat">Branding</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="gallery-card" data-cat="web">
+      <div class="gc-thumb" data-label="PROJECT IMAGE">
+        <div class="gc-overlay">
+          <span class="gc-hover-label">— Coming Soon</span>
+          <span class="gc-hover-arrow">↗</span>
+        </div>
+      </div>
+      <div class="gc-info">
+        <span class="gc-title">— Coming Soon</span>
+        <div class="gc-meta">
+          <span class="gc-year">2023</span>
+          <span class="gc-cat">Web</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="gallery-card" data-cat="motion">
+      <div class="gc-thumb" data-label="PROJECT IMAGE">
+        <div class="gc-overlay">
+          <span class="gc-hover-label">— Coming Soon</span>
+          <span class="gc-hover-arrow">↗</span>
+        </div>
+      </div>
+      <div class="gc-info">
+        <span class="gc-title">— Coming Soon</span>
+        <div class="gc-meta">
+          <span class="gc-year">2023</span>
+          <span class="gc-cat">Motion</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="gallery-card" data-cat="print">
+      <div class="gc-thumb" data-label="PROJECT IMAGE">
+        <div class="gc-overlay">
+          <span class="gc-hover-label">— Coming Soon</span>
+          <span class="gc-hover-arrow">↗</span>
+        </div>
+      </div>
+      <div class="gc-info">
+        <span class="gc-title">— Coming Soon</span>
+        <div class="gc-meta">
+          <span class="gc-year">2023</span>
+          <span class="gc-cat">Print</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2022 -->
+    <div class="gallery-card" data-cat="ux">
+      <div class="gc-thumb" data-label="PROJECT IMAGE">
+        <div class="gc-overlay">
+          <span class="gc-hover-label">— Coming Soon</span>
+          <span class="gc-hover-arrow">↗</span>
+        </div>
+      </div>
+      <div class="gc-info">
+        <span class="gc-title">— Coming Soon</span>
+        <div class="gc-meta">
+          <span class="gc-year">2022</span>
+          <span class="gc-cat">UX</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="gallery-card" data-cat="brand">
+      <div class="gc-thumb" data-label="PROJECT IMAGE">
+        <div class="gc-overlay">
+          <span class="gc-hover-label">— Coming Soon</span>
+          <span class="gc-hover-arrow">↗</span>
+        </div>
+      </div>
+      <div class="gc-info">
+        <span class="gc-title">— Coming Soon</span>
+        <div class="gc-meta">
+          <span class="gc-year">2022</span>
+          <span class="gc-cat">Branding</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="gallery-card" data-cat="web">
+      <div class="gc-thumb" data-label="PROJECT IMAGE">
+        <div class="gc-overlay">
+          <span class="gc-hover-label">— Coming Soon</span>
+          <span class="gc-hover-arrow">↗</span>
+        </div>
+      </div>
+      <div class="gc-info">
+        <span class="gc-title">— Coming Soon</span>
+        <div class="gc-meta">
+          <span class="gc-year">2022</span>
+          <span class="gc-cat">Web</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── STATEMENT ──────────────────────────────────── -->
+<div class="statement">
+  <div class="statement-text">Designing<br>for the<br>future.</div>
+  <div class="statement-sub">Lawrence, KS &nbsp;·&nbsp; Available for Work</div>
+</div>
+
+<!-- ── FOOTER ──────────────────────────────────────── -->
+<footer>
+  <a href="mailto:loudonnokes@gmail.com">loudonnokes@gmail.com</a>
+  <a href="#" class="footer-logo-mark" aria-label="Loudon Nokes">
+    <svg height="28" width="auto" viewBox="0 0 133 216" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M40 27.4277V121.629H45.9307V85.2197H132.139V215.439L92.1377 188.011V93.8105H85.9307V130.22H0V0L40 27.4277Z" fill="#F7014C"/>
+    </svg>
+  </a>
+  <span class="footer-copy">©2025 Loudon Nokes</span>
+</footer>
+
+<!-- ── MOBILE NAV ─────────────────────────────────── -->
+<script>
+  const hamburger   = document.getElementById('nav-hamburger');
+  const mobileMenu  = document.getElementById('nav-mobile-menu');
+
+  hamburger.addEventListener('click', () => {
+    const isOpen = mobileMenu.classList.toggle('open');
+    hamburger.classList.toggle('open', isOpen);
+    document.body.style.overflow = isOpen ? 'hidden' : '';
+  });
+
+  function closeMobileMenu() {
+    mobileMenu.classList.remove('open');
+    hamburger.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+</script>
+
+<!-- ── CARD CAROUSEL ──────────────────────────────── -->
+<script>
+(function() {
+  const L_MARK_SM = `<svg class="pc-corner-lmark" viewBox="0 0 133 216" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M40 27.4277V121.629H45.9307V85.2197H132.139V215.439L92.1377 188.011V93.8105H85.9307V130.22H0V0L40 27.4277Z" fill="rgba(255,255,255,0.55)"/></svg>`;
+  const L_MARK_LG = `<svg class="pc-watermark" width="110" height="179" viewBox="0 0 133 216" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M40 27.4277V121.629H45.9307V85.2197H132.139V215.439L92.1377 188.011V93.8105H85.9307V130.22H0V0L40 27.4277Z" fill="white"/></svg>`;
+
+  const PROJECTS = [
+    { num: '01', glyph: 'E',  logo: 'earnest-logo.svg',    name: 'Earnest',             cat: 'UI/UX · Branding',                 href: 'earnest.html', soon: false },
+    { num: '02', glyph: 'H',  logo: null,                  name: 'Haven',               cat: 'UI/UX · Branding · User Research', href: 'haven.html',   soon: false },
+    { num: '03', glyph: 'FL', logo: null,                  name: 'Ford Lincoln',         cat: 'Interaction Design · Automotive',  href: null,           soon: false },
+    { num: '04', glyph: '?',  logo: null,                  name: '— Coming Soon',       cat: 'TBD',                              href: null,           soon: true  },
+    { num: '05', glyph: '?',  logo: null,                  name: '— Coming Soon',       cat: 'TBD',                              href: null,           soon: true  },
+    { num: '06', glyph: '?',  logo: null,                  name: '— Coming Soon',       cat: 'TBD',                              href: null,           soon: true  },
+  ];
+
+  const track  = document.getElementById('card-track');
+  const dotsEl = document.getElementById('carousel-dots');
+  let current  = 0;
+  const N      = PROJECTS.length;
+
+  // Build cards
+  const cards = PROJECTS.map((p, i) => {
+    const el = document.createElement('div');
+    el.className = 'playing-card';
+    el.innerHTML = `
+      <div class="pc-face${p.soon ? ' pc-soon' : ''}">
+        <div class="pc-corner pc-corner--tl">
+          <span class="pc-idx">${p.num}</span>
+        </div>
+        <div class="pc-art">
+          ${p.logo
+            ? `<img class="pc-logo" src="${p.logo}" alt="${p.name} logo">`
+            : `<div class="pc-glyph">${p.glyph}</div>`}
+          <div class="pc-rule"></div>
+          <div class="pc-label">${p.soon ? 'Coming Soon' : p.name}</div>
+        </div>
+      </div>`;
+    track.appendChild(el);
+    return el;
+  });
+
+  // Build dots
+  const dots = PROJECTS.map((_, i) => {
+    const d = document.createElement('button');
+    d.className = 'carousel-dot';
+    d.setAttribute('aria-label', `Project ${i + 1}`);
+    d.addEventListener('click', () => goTo(i));
+    dotsEl.appendChild(d);
+    return d;
+  });
+
+  function posClass(idx) {
+    const diff = ((idx - current) % N + N) % N;
+    if (diff === 0)         return 'pc-active';
+    if (diff === 1)         return 'pc-next';
+    if (diff === N - 1)     return 'pc-prev';
+    if (diff === 2)         return 'pc-far-next';
+    if (diff === N - 2)     return 'pc-far-prev';
+    return 'pc-hidden';
+  }
+
+  function updateUI() {
+    const p = PROJECTS[current];
+
+    cards.forEach((c, i) => {
+      c.className = 'playing-card ' + posClass(i);
+    });
+
+    dots.forEach((d, i) => {
+      d.classList.toggle('active', i === current);
+    });
+
+    // Fade info out then in
+    const title = document.getElementById('card-info-title');
+    const cat   = document.getElementById('card-info-cat');
+    const link  = document.getElementById('card-info-link');
+    const num   = document.getElementById('card-info-num');
+
+    title.style.opacity = '0';
+    cat.style.opacity   = '0';
+
+    setTimeout(() => {
+      num.textContent   = p.num;
+      title.textContent = p.name;
+      cat.textContent   = p.cat;
+      title.style.opacity = '1';
+      cat.style.opacity   = '1';
+
+      if (p.href) {
+        link.href = p.href;
+        link.textContent = 'View Project ↗';
+        link.removeAttribute('hidden');
+      } else {
+        link.setAttribute('hidden', '');
+      }
+    }, 180);
+  }
+
+  function goTo(idx) {
+    current = ((idx % N) + N) % N;
+    updateUI();
+  }
+
+  // Click side cards to navigate; click active card to open project
+  // Guard against drag being misread as a click
+  cards.forEach((card, i) => {
+    card.addEventListener('click', () => {
+      if (dragging) return;
+      if (i === current) {
+        if (PROJECTS[i].href) window.location.href = PROJECTS[i].href;
+      } else {
+        goTo(i);
+      }
+    });
+  });
+
+  document.getElementById('carousel-prev').addEventListener('click', () => goTo(current - 1));
+  document.getElementById('carousel-next').addEventListener('click', () => goTo(current + 1));
+
+  // Keyboard
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowLeft')  goTo(current - 1);
+    if (e.key === 'ArrowRight') goTo(current + 1);
+  });
+
+  // Touch swipe
+  let touchX = null;
+  track.addEventListener('touchstart', e => { touchX = e.touches[0].clientX; }, { passive: true });
+  track.addEventListener('touchend', e => {
+    if (touchX === null) return;
+    const dx = e.changedTouches[0].clientX - touchX;
+    if (Math.abs(dx) > 40) goTo(dx < 0 ? current + 1 : current - 1);
+    touchX = null;
+  });
+
+  // Mouse drag
+  let dragStartX = null;
+  let dragging   = false;
+  const DRAG_THRESHOLD = 60;
+
+  track.addEventListener('mousedown', e => {
+    dragStartX = e.clientX;
+    dragging   = false;
+    track.style.cursor = 'grabbing';
+  });
+
+  window.addEventListener('mousemove', e => {
+    if (dragStartX === null) return;
+    if (Math.abs(e.clientX - dragStartX) > 8) dragging = true;
+  });
+
+  window.addEventListener('mouseup', e => {
+    if (dragStartX === null) return;
+    const dx = e.clientX - dragStartX;
+    if (dragging && Math.abs(dx) > DRAG_THRESHOLD) {
+      goTo(dx < 0 ? current + 1 : current - 1);
+    }
+    dragStartX = null;
+    dragging   = false;
+    track.style.cursor = '';
+  });
+
+  updateUI();
+})();
+</script>
+
+<!-- ── THREE.JS ────────────────────────────────────── -->
+<script type="module">
+import * as THREE from 'three';
+import { SVGLoader } from 'three/addons/loaders/SVGLoader.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+
+// ── SVG LOGOTYPE DATA ─────────────────────────────────────────────────────
+// Inlined to avoid CORS when opened as file://
+const SVG_STRING = `<svg width="444" height="152" viewBox="0 0 444 152" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M2.1333 0H42.3169V118.003H48.7212V147H2.1333V0Z" fill="#F7014C"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M127.97 147H55.1245V0H127.97V147ZM88.2603 118.003H94.6646V29.3564H88.2603V118.003Z" fill="#F7014C"/>
+<path d="M164.633 120.199H171.037V0H203.952V147H134.375V0H164.633V120.199Z" fill="#F7014C"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M268.677 0.000976562L280.02 11.3477V135.652L268.678 147H210.355V0H268.678L268.677 0.000976562ZM241.834 118.003H248.238V29.3564H241.834V118.003Z" fill="#F7014C"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M355.892 147H286.423V0H355.892V147ZM318.205 118.003H324.609V29.3564H318.205V118.003Z" fill="#F7014C"/>
+<path d="M401.996 53.7988C402.255 55.099 402.515 56.3999 402.774 57.7002C401.958 58.8789 401.614 60.8267 401.983 62.9189C402.542 66.0891 404.521 68.3889 406.404 68.0576C408.287 67.7254 409.361 64.8866 408.802 61.7158C408.418 59.5337 407.36 57.7631 406.125 56.9795C405.93 55.7111 405.734 54.442 405.54 53.1738L397.375 0H441.133V147H408.938L398.754 95.8643C398.495 94.5639 398.236 93.2634 397.977 91.9629C398.793 90.7841 399.136 88.8368 398.767 86.7451C398.208 83.5747 396.228 81.2738 394.345 81.6055C392.462 81.9379 391.388 84.7777 391.947 87.9482C392.332 90.1312 393.39 91.9024 394.626 92.6855C394.821 93.9534 395.016 95.2215 395.21 96.4893L402.967 147H362.295V0H391.283L401.996 53.7988Z" fill="#F7014C"/>
+</svg>`;
+
+const SVG_W = 444, SVG_H = 152;
+const SCALE = 1.35;
+
+// ── RENDERER ──────────────────────────────────────────────────────────────
+const canvas = document.getElementById('hero-canvas');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.2;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+// ── SCENE ─────────────────────────────────────────────────────────────────
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x1C1D1D);
+scene.fog = new THREE.FogExp2(0x1C1D1D, 0.00018);
+
+// ── CAMERA ────────────────────────────────────────────────────────────────
+const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 4000);
+camera.position.set(0, 0, 500);
+
+// ── LIGHTS — minimal, only for floor/grid; particles are self-lit ──────────
+const ambient = new THREE.AmbientLight(0x080003, 0.6);
+scene.add(ambient);
+
+// Crimson rim lights illuminate the reflective floor and add environmental glow
+const rimR = new THREE.PointLight(0xff0040, 900, 1200);
+rimR.position.set(480, -80, 200);
+scene.add(rimR);
+
+const rimL = new THREE.PointLight(0xff0036, 700, 1100);
+rimL.position.set(-460, 100, -80);
+scene.add(rimL);
+
+const rimBottom = new THREE.PointLight(0xff0030, 300, 700);
+rimBottom.position.set(0, -280, 100);
+scene.add(rimBottom);
+
+const backGlow = new THREE.PointLight(0x4d0018, 180, 700);
+backGlow.position.set(0, 0, -220);
+scene.add(backGlow);
+
+// ── BUILD LOGO PARTICLE CLOUD ──────────────────────────────────────────────
+// Rasterize the SVG logotype to an offscreen canvas, sample filled pixels,
+// emit each as a particle in 3D space. AdditiveBlending gives natural glow
+// where particles overlap — denser areas (tight letterforms) burn brighter.
+const pathFillRules = (SVG_STRING.match(/<path[^>]*>/g) || []).map(p =>
+  p.includes('evenodd') ? 'evenodd' : 'nonzero'
+);
+
+function buildLogoParticles() {
+  const CANVAS_SCALE = 4;
+  const cw = SVG_W * CANVAS_SCALE;  // 1776
+  const ch = SVG_H * CANVAS_SCALE;  // 608
+
+  const offCanvas = document.createElement('canvas');
+  offCanvas.width  = cw;
+  offCanvas.height = ch;
+  const ctx = offCanvas.getContext('2d');
+  ctx.scale(CANVAS_SCALE, CANVAS_SCALE);
+
+  // Render each SVG path to the canvas with correct fill rule (handles holes in O, D)
+  const svgData = new SVGLoader().parse(SVG_STRING);
+  svgData.paths.forEach((path, pathIdx) => {
+    const fillRule = pathFillRules[pathIdx] || 'nonzero';
+    ctx.beginPath();
+    for (const subPath of path.subPaths) {
+      const pts = subPath.getPoints(120);
+      if (!pts.length) continue;
+      ctx.moveTo(pts[0].x, pts[0].y);
+      for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+      ctx.closePath();
+    }
+    ctx.fillStyle = 'white';
+    ctx.fill(fillRule);
+  });
+
+  // Sample every Nth pixel in the filled region, convert to 3D positions
+  const imgData = ctx.getImageData(0, 0, cw, ch);
+  const posArr = [], colArr = [];
+  const STEP = 4;
+  const color = new THREE.Color();
+
+  for (let y = 0; y < ch; y += STEP) {
+    for (let x = 0; x < cw; x += STEP) {
+      const idx = (y * cw + x) * 4;
+      if (imgData.data[idx + 3] < 128) continue;
+
+      // Sub-pixel jitter — breaks the grid pattern, feels organic
+      const jx = (Math.random() - 0.5) * STEP * 0.9;
+      const jy = (Math.random() - 0.5) * STEP * 0.9;
+
+      // Canvas coords → Three.js world coords (Y-flipped)
+      const wx = ((x + jx) / CANVAS_SCALE - SVG_W / 2) * SCALE;
+      const wy = -((y + jy) / CANVAS_SCALE - SVG_H / 2) * SCALE;
+      const wz = (Math.random() - 0.5) * 32; // Z scatter creates 3D depth
+
+      posArr.push(wx, wy, wz);
+
+      // Multi-tone crimson palette — overlapping additives push highlights bright
+      const r = Math.random();
+      if      (r > 0.97) color.setHex(0xff88aa); // rare hot-pink highlight
+      else if (r > 0.82) color.setHex(0xf7014c); // brand crimson
+      else if (r > 0.55) color.setHex(0xcc0038); // mid crimson
+      else               color.setHex(0x880022); // deep ember crimson
+      colArr.push(color.r, color.g, color.b);
+    }
+  }
+
+  const count = posArr.length / 3;
+
+  // Generate scattered start positions — particles fly in from a diffuse cloud
+  const startArr   = new Float32Array(posArr.length);
+  const timeOffsets = new Float32Array(count); // per-particle stagger (seconds)
+  for (let i = 0; i < count; i++) {
+    const b = i * 3;
+    startArr[b]     = posArr[b]     + (Math.random() - 0.5) * 900;
+    startArr[b + 1] = posArr[b + 1] + (Math.random() - 0.5) * 500;
+    startArr[b + 2] = posArr[b + 2] + (Math.random() - 0.5) * 600 + (Math.random() > 0.5 ? 220 : -220);
+    timeOffsets[i]  = Math.random() * 0.5; // up to 500ms stagger per particle
+  }
+
+  const geo = new THREE.BufferGeometry();
+  // Start at scattered cloud; animation loop interpolates toward targetPos
+  geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(startArr), 3));
+  geo.setAttribute('color',    new THREE.BufferAttribute(new Float32Array(colArr), 3));
+
+  const points = new THREE.Points(geo, new THREE.PointsMaterial({
+    size: 2.2,
+    vertexColors: true,
+    transparent: true,
+    opacity: 1.0,
+    sizeAttenuation: true,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+  }));
+
+  points.userData.targetPos   = new Float32Array(posArr);
+  points.userData.startPos    = startArr;
+  points.userData.timeOffsets = timeOffsets;
+
+  return points;
+}
+
+const logoParticles = buildLogoParticles();
+scene.add(logoParticles);
+
+// ── BUILD FLAT 2D LOGOTYPE ─────────────────────────────────────────────────
+// After particles assemble, this crisp flat mesh cross-fades in for readability.
+// Same canvas rasterisation — correct fill rules for O/D holes.
+// Transparent areas show the particle glow behind; letter fills are solid crimson.
+function buildFlatLogotype() {
+  const CANVAS_SCALE = 4;
+  const cw = SVG_W * CANVAS_SCALE;
+  const ch = SVG_H * CANVAS_SCALE;
+  const offCanvas = document.createElement('canvas');
+  offCanvas.width  = cw;
+  offCanvas.height = ch;
+  const ctx = offCanvas.getContext('2d');
+  ctx.scale(CANVAS_SCALE, CANVAS_SCALE);
+
+  const svgData = new SVGLoader().parse(SVG_STRING);
+  svgData.paths.forEach((path, pathIdx) => {
+    const fillRule = pathFillRules[pathIdx] || 'nonzero';
+    ctx.beginPath();
+    for (const subPath of path.subPaths) {
+      const pts = subPath.getPoints(120);
+      if (!pts.length) continue;
+      ctx.moveTo(pts[0].x, pts[0].y);
+      for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+      ctx.closePath();
+    }
+    ctx.fillStyle = '#F7014C';
+    ctx.fill(fillRule);
+  });
+
+  const texture = new THREE.CanvasTexture(offCanvas);
+  texture.colorSpace = THREE.SRGBColorSpace; // canvas is sRGB — prevents washed-out display
+  const geo = new THREE.PlaneGeometry(SVG_W * SCALE, SVG_H * SCALE);
+  const mat = new THREE.MeshBasicMaterial({
+    map: texture,
+    transparent: true,
+    opacity: 0,
+    alphaTest: 0.05,
+    depthWrite: false,
+  });
+
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.renderOrder = 2; // always draws in front of particles
+  return mesh;
+}
+
+const flatMesh = buildFlatLogotype();
+scene.add(flatMesh);
+
+// ── REFLECTIVE FLOOR PLANE ─────────────────────────────────────────────────
+const floorMesh = new THREE.Mesh(
+  new THREE.PlaneGeometry(3000, 1200),
+  new THREE.MeshStandardMaterial({
+    color: 0x0c0508,
+    metalness: 0.96,
+    roughness: 0.06,
+  })
+);
+floorMesh.rotation.x = -Math.PI / 2;
+floorMesh.position.y = -152;
+scene.add(floorMesh);
+
+// ── PERSPECTIVE GRID ON FLOOR ──────────────────────────────────────────────
+const gridHelper = new THREE.GridHelper(3000, 60, 0x250010, 0x180008);
+gridHelper.position.y = -151;
+const gridMats = Array.isArray(gridHelper.material) ? gridHelper.material : [gridHelper.material];
+gridMats.forEach(m => { m.transparent = true; m.opacity = 0.4; });
+scene.add(gridHelper);
+
+// ── BACKGROUND PARTICLE FIELD ──────────────────────────────────────────────
+// Three depth layers of crimson particles with varying sizes and opacities.
+// AdditiveBlending + vertex color brightness = per-particle apparent opacity.
+const PARTICLE_COUNT = 900;
+const pPos   = new Float32Array(PARTICLE_COUNT * 3);
+const pSpeed = new Float32Array(PARTICLE_COUNT);
+const pCol   = new Float32Array(PARTICLE_COUNT * 3); // vertex colors encode brightness
+
+const bgColor = new THREE.Color();
+for (let i = 0; i < PARTICLE_COUNT; i++) {
+  pPos[i * 3]     = (Math.random() - 0.5) * 1800;
+  pPos[i * 3 + 1] = (Math.random() - 0.5) * 1000;
+  pPos[i * 3 + 2] = (Math.random() - 0.5) * 700 - 80;
+  pSpeed[i] = 0.03 + Math.random() * 0.09;
+
+  // Vary brightness across crimson tones — creates depth without extra draw calls
+  const tier = Math.random();
+  if      (tier > 0.85) bgColor.setHex(0xf7014c); // bright foreground sparks
+  else if (tier > 0.55) bgColor.setHex(0x990028); // mid-layer crimson
+  else                  bgColor.setHex(0x3d0010); // deep background ember
+  // Scale down further for a natural opacity spread (0.15–0.6 apparent brightness)
+  const dim = 0.15 + Math.random() * 0.45;
+  pCol[i * 3]     = bgColor.r * dim;
+  pCol[i * 3 + 1] = bgColor.g * dim;
+  pCol[i * 3 + 2] = bgColor.b * dim;
+}
+
+const particleGeo = new THREE.BufferGeometry();
+particleGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
+particleGeo.setAttribute('color',    new THREE.BufferAttribute(pCol, 3));
+
+// Two overlapping point clouds — small dense layer + larger sparse layer
+const bgMatSmall = new THREE.PointsMaterial({
+  size: 1.1, vertexColors: true, transparent: true, opacity: 1,
+  sizeAttenuation: true, blending: THREE.AdditiveBlending, depthWrite: false,
+});
+const bgMatLarge = new THREE.PointsMaterial({
+  size: 2.8, vertexColors: true, transparent: true, opacity: 0.4,
+  sizeAttenuation: true, blending: THREE.AdditiveBlending, depthWrite: false,
+});
+
+const particles      = new THREE.Points(particleGeo, bgMatSmall);
+const particlesLarge = new THREE.Points(particleGeo, bgMatLarge);
+scene.add(particles);
+scene.add(particlesLarge);
+
+// ── POST-PROCESSING: BLOOM ─────────────────────────────────────────────────
+// Low threshold (0.35) catches the particle glow; strength 1.2 makes crimson
+// particles bleed light — the dense letterform cores burn bright
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+
+const bloomPass = new UnrealBloomPass(
+  new THREE.Vector2(window.innerWidth, window.innerHeight),
+  1.2,   // strength
+  0.55,  // radius
+  0.35   // threshold — low to catch particle emission
+);
+composer.addPass(bloomPass);
+
+// ── SCROLL STATE ──────────────────────────────────────────────────────────
+let targetRotY = 0, targetRotX = 0;
+let currentRotY = 0, currentRotX = 0;
+let scrollProgress = 0;
+
+window.addEventListener('scroll', () => {
+  scrollProgress = Math.min(window.scrollY / window.innerHeight, 1);
+  targetRotY = scrollProgress * 2.75;
+  targetRotX = scrollProgress * 0.25;
+});
+
+// ── MOUSE PARALLAX ────────────────────────────────────────────────────────
+let mouseX = 0, mouseY = 0;
+
+window.addEventListener('mousemove', e => {
+  mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+  mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+});
+
+// ── ANIMATION LOOP ────────────────────────────────────────────────────────
+const clock = new THREE.Clock();
+
+(function animate() {
+  requestAnimationFrame(animate);
+  const t = clock.getElapsedTime();
+
+  // ── ASSEMBLY ANIMATION ────────────────────────────────────────────────────
+  // Particles start scattered; after DELAY they converge to the logotype form.
+  // Per-particle time offsets create an organic, staggered arrival.
+  const ASSEMBLY_DELAY    = 0.6;  // seconds before convergence starts
+  const ASSEMBLY_DURATION = 2.8;  // seconds for full convergence
+  const ASSEMBLY_END      = ASSEMBLY_DELAY + ASSEMBLY_DURATION + 0.6; // covers max stagger
+
+  if (t < ASSEMBLY_END) {
+    const lpos    = logoParticles.geometry.attributes.position.array;
+    const start   = logoParticles.userData.startPos;
+    const target  = logoParticles.userData.targetPos;
+    const offsets = logoParticles.userData.timeOffsets;
+    const pCount  = lpos.length / 3;
+
+    for (let i = 0; i < pCount; i++) {
+      const pRaw = (t - ASSEMBLY_DELAY - offsets[i]) / ASSEMBLY_DURATION;
+      const pT   = Math.max(0, Math.min(1, pRaw));
+      const pe   = 1 - Math.pow(1 - pT, 3); // ease-out cubic
+      const b    = i * 3;
+      lpos[b]     = start[b]     + (target[b]     - start[b])     * pe;
+      lpos[b + 1] = start[b + 1] + (target[b + 1] - start[b + 1]) * pe;
+      lpos[b + 2] = start[b + 2] + (target[b + 2] - start[b + 2]) * pe;
+    }
+    logoParticles.geometry.attributes.position.needsUpdate = true;
+  }
+
+  // Cross-fade: particles dissolve as flat logotype materialises
+  const FLAT_FADE = 0.9;
+  const fadeT = Math.max(0, Math.min(1, (t - ASSEMBLY_END) / FLAT_FADE));
+  flatMesh.material.opacity         = fadeT;
+  logoParticles.material.opacity    = 1 - fadeT * 0.82; // settle at ~18% residual glow
+
+  // Particles don't rotate — flat mesh is the final readable form.
+  // Tiny idle float fades out as the flat logo materialises, leaving zero rotation.
+  const idleY = Math.sin(t * 0.19) * 0.012 * (1 - fadeT);
+  const idleX = Math.sin(t * 0.14) * 0.008 * (1 - fadeT);
+  logoParticles.rotation.y = idleY;
+  logoParticles.rotation.x = idleX;
+
+  // Recede into distance as scroll advances
+  logoParticles.position.z = -scrollProgress * 90;
+  logoParticles.position.y =  scrollProgress * 30;
+
+  // Flat mesh tracks scroll position but never rotates — stays facing camera
+  flatMesh.position.z = logoParticles.position.z + 1; // +1 to sit just in front
+  flatMesh.position.y = logoParticles.position.y;
+
+  // Background particle drift — dust in a dark room
+  const posArr = particleGeo.attributes.position.array;
+  for (let i = 0; i < PARTICLE_COUNT; i++) {
+    posArr[i * 3 + 1] += pSpeed[i] * 0.1;
+    if (posArr[i * 3 + 1] > 400) posArr[i * 3 + 1] = -400;
+  }
+  particleGeo.attributes.position.needsUpdate = true;
+
+  // Grid parallax with scroll — grid slides as hero scrolls away
+  gridHelper.position.z = scrollProgress * 80;
+
+  // Pulsing rim lights — living ember glow on floor
+  rimR.intensity      = 850 + Math.sin(t * 0.72) * 100;
+  rimL.intensity      = 650 + Math.sin(t * 0.54 + 1.3) * 90;
+  rimBottom.intensity = 280 + Math.sin(t * 0.41 + 0.8) * 50;
+  backGlow.intensity  = 160 + Math.sin(t * 0.28) * 40;
+
+  // Camera very slight breathing — feels alive
+  camera.position.y = Math.sin(t * 0.12) * 4;
+
+  composer.render();
+})();
+
+// ── SHOW UI ELEMENTS AFTER LOAD ───────────────────────────────────────────
+setTimeout(() => {
+  document.getElementById('hero-loading').classList.add('hidden');
+
+  // Stagger in corners + HUD elements
+  ['c-tl','c-tr','c-bl','c-br'].forEach((id, i) => {
+    setTimeout(() => document.getElementById(id).classList.add('visible'), i * 80);
+  });
+  setTimeout(() => document.getElementById('hud-tl').classList.add('visible'), 400);
+  setTimeout(() => document.getElementById('hud-tr').classList.add('visible'), 550);
+  setTimeout(() => document.getElementById('hud-side').classList.add('visible'), 700);
+  setTimeout(() => document.getElementById('scroll-hint').classList.add('visible'), 900);
+
+}, 700);
+
+// ── SCROLL REVEAL: WORK HEADER ─────────────────────────────────────────────
+const workHeader = document.querySelector('.work-header');
+const headerObserver = new IntersectionObserver(entries => {
+  if (entries[0].isIntersecting) {
+    workHeader.classList.add('revealed');
+    headerObserver.disconnect();
+  }
+}, { threshold: 0.4 });
+headerObserver.observe(workHeader);
+
+// ── SCROLL REVEAL: WORK ITEMS ──────────────────────────────────────────────
+const workItems = document.querySelectorAll('.work-item');
+
+const revealObserver = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const i = [...workItems].indexOf(entry.target);
+      setTimeout(() => entry.target.classList.add('revealed'), i * 110);
+      revealObserver.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.12 });
+
+workItems.forEach(el => revealObserver.observe(el));
+
+// ── RESIZE ────────────────────────────────────────────────────────────────
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  composer.setSize(window.innerWidth, window.innerHeight);
+  bloomPass.resolution.set(window.innerWidth, window.innerHeight);
+});
+</script>
+
+<script>
+// ── ARCHIVE FILTER ────────────────────────────────────
+document.querySelectorAll('.af-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.af-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const filter = btn.dataset.filter;
+    document.querySelectorAll('.gallery-card').forEach(card => {
+      const match = filter === 'all' || card.dataset.cat === filter;
+      card.classList.toggle('hidden', !match);
+    });
+  });
+});
+
+// ── SCROLL REVEAL: ARCHIVE HEADER + FILTER PILLS ─────
+const archiveHeader  = document.querySelector('.archive-header');
+const archiveFilters = document.querySelector('.archive-filters');
+
+const archiveHeaderObs = new IntersectionObserver(entries => {
+  if (entries[0].isIntersecting) {
+    archiveHeader.classList.add('revealed');
+    if (archiveFilters) archiveFilters.classList.add('revealed');
+    archiveHeaderObs.disconnect();
+  }
+}, { threshold: 0.3 });
+if (archiveHeader) archiveHeaderObs.observe(archiveHeader);
+
+// ── SCROLL REVEAL: GALLERY CARDS (staggered by row) ──
+const galleryCards = document.querySelectorAll('.gallery-card');
+
+const cardObs = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const i = [...galleryCards].indexOf(entry.target);
+      const row = Math.floor(i / 3);
+      const col = i % 3;
+      setTimeout(() => entry.target.classList.add('revealed'), row * 90 + col * 55);
+      cardObs.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.08, rootMargin: '0px 0px -30px 0px' });
+galleryCards.forEach(el => cardObs.observe(el));
+
+// ── SCROLL REVEAL: STATEMENT ──────────────────────────
+const statementEl = document.querySelector('.statement');
+const statementObs = new IntersectionObserver(entries => {
+  if (entries[0].isIntersecting) {
+    statementEl.classList.add('revealed');
+    statementObs.disconnect();
+  }
+}, { threshold: 0.25 });
+if (statementEl) statementObs.observe(statementEl);
+
+// ── PARALLAX ─────────────────────────────────────────
+const accentA = document.getElementById('work-accent-a');
+const accentB = document.getElementById('work-accent-b');
+
+let rafPending = false;
+function updateParallax() {
+  const sy = window.scrollY;
+
+  // Statement slab — moves at a different rate to the text
+  if (statementEl) {
+    const rect = statementEl.getBoundingClientRect();
+    const offset = (window.innerHeight * 0.5 - rect.top) * 0.12;
+    statementEl.style.setProperty('--parallax-slab', `${offset}px`);
+  }
+
+  // Work section accent glows — drift upward as you scroll through
+  if (accentA) accentA.style.transform = `translateY(${sy * 0.07}px)`;
+  if (accentB) accentB.style.transform = `translateY(${-sy * 0.05}px)`;
+
+  rafPending = false;
+}
+
+window.addEventListener('scroll', () => {
+  if (!rafPending) {
+    rafPending = true;
+    requestAnimationFrame(updateParallax);
+  }
+}, { passive: true });
+</script>
+</body>
+</html>
