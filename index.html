@@ -2000,6 +2000,12 @@ const SVG_STRING = `<svg width="444" height="152" viewBox="0 0 444 152" fill="no
 const SVG_W = 444, SVG_H = 152;
 const SCALE = 1.35;
 
+function getLogoScale() {
+  const aspect = window.innerWidth / window.innerHeight;
+  const visibleWidth = 2 * Math.tan(20 * Math.PI / 180) * 500 * aspect;
+  return Math.min(1.0, (visibleWidth * 0.92) / (SVG_W * SCALE));
+}
+
 // ── RENDERER ──────────────────────────────────────────────────────────────
 const canvas = document.getElementById('hero-canvas');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
@@ -2191,6 +2197,10 @@ function buildFlatLogotype() {
 
 const flatMesh = buildFlatLogotype();
 scene.add(flatMesh);
+
+const initialLogoScale = getLogoScale();
+logoParticles.scale.setScalar(initialLogoScale);
+flatMesh.scale.setScalar(initialLogoScale);
 
 // ── REFLECTIVE FLOOR PLANE ─────────────────────────────────────────────────
 const floorMesh = new THREE.Mesh(
@@ -2415,6 +2425,9 @@ window.addEventListener('resize', () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
   composer.setSize(window.innerWidth, window.innerHeight);
   bloomPass.resolution.set(window.innerWidth, window.innerHeight);
+  const ls = getLogoScale();
+  logoParticles.scale.setScalar(ls);
+  flatMesh.scale.setScalar(ls);
 });
 </script>
 
