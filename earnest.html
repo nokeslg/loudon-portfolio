@@ -193,6 +193,39 @@ footer a:hover { color: var(--red); }
   letter-spacing: 0.14em;
   color: rgba(0,0,0,0.2);
 }
+
+@media (max-width: 768px) {
+  nav { padding: 0 24px; }
+
+  .project-header {
+    padding: 88px 24px 32px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+  }
+
+  .project-meta { align-items: flex-start; }
+
+  .case-study {
+    padding: 0;
+  }
+
+  .case-study img {
+    box-shadow: none;
+  }
+
+  .prototype-section {
+    padding: 0 24px 48px;
+  }
+
+  footer {
+    padding: 24px;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    text-align: center;
+  }
+}
 </style>
 </head>
 <body>
