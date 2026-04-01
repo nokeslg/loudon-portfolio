@@ -852,6 +852,137 @@ footer span.footer-copy {
   display: none;
 }
 
+/* ── LIGHTBOX ───────────────────────────────────────── */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  background: rgba(10,10,10,0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+.lightbox.open {
+  opacity: 1;
+  pointer-events: all;
+}
+.lightbox-inner {
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+.lightbox-inner img {
+  max-width: 100%;
+  max-height: 70vh;
+  object-fit: contain;
+  box-shadow: 0 40px 120px rgba(0,0,0,0.8);
+  transform: scale(0.96);
+  transition: transform 0.35s cubic-bezier(0.16,1,0.3,1);
+}
+.lightbox.open .lightbox-inner img {
+  transform: scale(1);
+}
+.lightbox-meta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.lightbox-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--off-white);
+}
+.lightbox-cat {
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.14em;
+  color: rgba(255,255,255,0.3);
+}
+.lightbox-close {
+  position: fixed;
+  top: 28px;
+  right: 36px;
+  font-family: 'Syne', sans-serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.3);
+  background: none;
+  border: none;
+  cursor: crosshair;
+  transition: color 0.15s;
+  z-index: 10;
+}
+.lightbox-close:hover { color: var(--red); }
+@keyframes nudge-left {
+  0%, 100% { transform: translateY(-50%) translateX(0); }
+  50% { transform: translateY(-50%) translateX(-6px); }
+}
+@keyframes nudge-right {
+  0%, 100% { transform: translateY(-50%) translateX(0); }
+  50% { transform: translateY(-50%) translateX(6px); }
+}
+.lightbox-nav {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 2px;
+  font-family: 'Syne', sans-serif;
+  font-size: 1.6rem;
+  color: rgba(255,255,255,0.75);
+  cursor: crosshair;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+  z-index: 10;
+}
+.lightbox-nav:hover {
+  background: rgba(247,1,76,0.15);
+  border-color: rgba(247,1,76,0.4);
+  color: var(--red);
+  animation: none;
+}
+.lightbox-prev {
+  left: 24px;
+  animation: nudge-left 1.6s ease-in-out infinite;
+}
+.lightbox-next {
+  right: 24px;
+  animation: nudge-right 1.6s ease-in-out infinite;
+}
+.lightbox-counter {
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  color: rgba(255,255,255,0.2);
+}
+.lightbox-desc {
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.78rem;
+  line-height: 1.75;
+  color: rgba(255,255,255,0.38);
+  max-width: 640px;
+  text-align: center;
+  margin-top: 4px;
+}
+
 /* ── WORK HOVER PREVIEW ─────────────────────────────── */
 .work-hover-preview {
   position: fixed;
@@ -1532,7 +1663,7 @@ footer span.footer-copy { color: rgba(28,29,29,0.28); }
 <section class="archive" id="archive">
   <div class="archive-header">
     <h2 class="archive-headline">Archive</h2>
-    <span class="archive-count">14 Projects</span>
+    <span class="archive-count">12 Projects</span>
   </div>
 
   <div class="archive-filters">
@@ -1546,186 +1677,137 @@ footer span.footer-copy { color: rgba(28,29,29,0.28); }
 
   <div class="gallery-grid">
 
-    <!-- 2025 -->
-    <div class="gallery-card" data-cat="ux">
-      <div class="gc-thumb" data-label="PROJECT IMAGE">
+    <!-- Real projects first -->
+    <div class="gallery-card" data-cat="print" data-lightbox-gallery="HONY/HONY1.png,HONY/HONY2.png,HONY/HONY3.png,HONY/HONY4.png,HONY/HONY5.png,HONY/HONY6.png" data-title="Humans of New York" data-cat2="Print · Graphic Design · Typography · Layout" data-description="A view of humankind through the lens of a stranger in New York. Humans of New York shows the various emotions, behaviors, and stories that we all carry within us. In a city with just under 8.3 million people, it's become a hot spot for cultures and people from all around the world. The camera doesn't lie, nor does it sugarcoat. The stories within this book are raw, vulnerable, and honest narratives told to a complete stranger with a camera. Beginning as a street photography blog, Humans of New York has evolved into a standalone book that showcases the unique quirks that we all contain within ourselves. Hoping to highlight the common threads that connect us all, these pages display the struggles, dreams, diversity, and beauty that come with living as a human being in our current age.">
+      <div class="gc-thumb" data-label="" style="background-image: url('HONY/HONY1.png'); background-size: cover; background-position: center;">
         <div class="gc-overlay">
-          <span class="gc-hover-label">Healthcare UX Redesign</span>
+          <span class="gc-hover-label">Humans of New York</span>
           <span class="gc-hover-arrow">↗</span>
         </div>
       </div>
       <div class="gc-info">
-        <span class="gc-title">Healthcare UX Redesign</span>
+        <span class="gc-title">Humans of New York</span>
         <div class="gc-meta">
           <span class="gc-year">2025</span>
-          <span class="gc-cat">UX</span>
+          <span class="gc-cat">Print · Graphic Design</span>
         </div>
       </div>
     </div>
 
-    <div class="gallery-card" data-cat="brand">
-      <div class="gc-thumb" data-label="PROJECT IMAGE">
+    <div class="gallery-card" data-cat="print" data-lightbox="bb poster.png" data-title="Blood Bank Poster" data-cat2="Print · Advertising">
+      <div class="gc-thumb" data-label="" style="background-image: url('bb poster.png'); background-size: cover; background-position: center;">
         <div class="gc-overlay">
-          <span class="gc-hover-label">Salon 223 Brand Evolution</span>
+          <span class="gc-hover-label">Blood Bank Poster</span>
           <span class="gc-hover-arrow">↗</span>
         </div>
       </div>
       <div class="gc-info">
-        <span class="gc-title">Salon 223 Brand Evolution</span>
+        <span class="gc-title">Blood Bank Poster</span>
         <div class="gc-meta">
           <span class="gc-year">2025</span>
-          <span class="gc-cat">Branding</span>
+          <span class="gc-cat">Print · Advertising</span>
         </div>
       </div>
     </div>
 
-    <div class="gallery-card" data-cat="web">
-      <div class="gc-thumb" data-label="PROJECT IMAGE">
+    <div class="gallery-card" data-cat="print" data-lightbox-gallery="Type Workbook/1.png,Type Workbook/2.png,Type Workbook/3.png,Type Workbook/4.png,Type Workbook/5.png,Type Workbook/6.png" data-title="Type N' Cymbals" data-cat2="Print · Graphic Design · Typography · Layout" data-description="This project's goal was to create a workbook detailing typographic rules with our own personalized themes. I chose to use photography work from one of my favorite artists Gabe Becerra. I created a concert-photography themed book that showcased my type-layout abilities and publication design skills that I've learned. This project helped me create unique layouts and themes based on a flexible project guideline.">
+      <div class="gc-thumb" data-label="" style="background-image: url('Type Workbook/1.png'); background-size: cover; background-position: center;">
         <div class="gc-overlay">
-          <span class="gc-hover-label">Portfolio — Obsidian Signal</span>
+          <span class="gc-hover-label">Type N' Cymbals</span>
           <span class="gc-hover-arrow">↗</span>
         </div>
       </div>
       <div class="gc-info">
-        <span class="gc-title">Portfolio — Obsidian Signal</span>
+        <span class="gc-title">Type N' Cymbals</span>
         <div class="gc-meta">
           <span class="gc-year">2025</span>
-          <span class="gc-cat">Web</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- 2024 -->
-    <div class="gallery-card" data-cat="ux">
-      <div class="gc-thumb" data-label="PROJECT IMAGE">
-        <div class="gc-overlay">
-          <span class="gc-hover-label">Ford Lincoln Nautilus UI</span>
-          <span class="gc-hover-arrow">↗</span>
-        </div>
-      </div>
-      <div class="gc-info">
-        <span class="gc-title">Ford Lincoln Nautilus UI</span>
-        <div class="gc-meta">
-          <span class="gc-year">2024</span>
-          <span class="gc-cat">UX</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="gallery-card" data-cat="brand">
-      <div class="gc-thumb" data-label="PROJECT IMAGE">
-        <div class="gc-overlay">
-          <span class="gc-hover-label">— Coming Soon</span>
-          <span class="gc-hover-arrow">↗</span>
-        </div>
-      </div>
-      <div class="gc-info">
-        <span class="gc-title">— Coming Soon</span>
-        <div class="gc-meta">
-          <span class="gc-year">2024</span>
-          <span class="gc-cat">Branding</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="gallery-card" data-cat="print">
-      <div class="gc-thumb" data-label="PROJECT IMAGE">
-        <div class="gc-overlay">
-          <span class="gc-hover-label">— Coming Soon</span>
-          <span class="gc-hover-arrow">↗</span>
-        </div>
-      </div>
-      <div class="gc-info">
-        <span class="gc-title">— Coming Soon</span>
-        <div class="gc-meta">
-          <span class="gc-year">2024</span>
-          <span class="gc-cat">Print</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="gallery-card" data-cat="ux">
-      <div class="gc-thumb" data-label="PROJECT IMAGE">
-        <div class="gc-overlay">
-          <span class="gc-hover-label">— Coming Soon</span>
-          <span class="gc-hover-arrow">↗</span>
-        </div>
-      </div>
-      <div class="gc-info">
-        <span class="gc-title">— Coming Soon</span>
-        <div class="gc-meta">
-          <span class="gc-year">2024</span>
-          <span class="gc-cat">UX</span>
+          <span class="gc-cat">Print · Graphic Design</span>
         </div>
       </div>
     </div>
 
     <!-- 2023 -->
-    <div class="gallery-card" data-cat="brand">
-      <div class="gc-thumb" data-label="PROJECT IMAGE">
+    <div class="gallery-card" data-cat="print" data-lightbox-gallery="Marin/marin 1.png,Marin/marin 2.png,Marin/marin 3.png,Marin/marin 4.png" data-title="Marin" data-cat2="Typography · Graphic Design">
+      <div class="gc-thumb" data-label="" style="background-image: url('Marin/marin 4.png'); background-size: cover; background-position: center;">
         <div class="gc-overlay">
-          <span class="gc-hover-label">— Coming Soon</span>
+          <span class="gc-hover-label">Marin</span>
           <span class="gc-hover-arrow">↗</span>
         </div>
       </div>
       <div class="gc-info">
-        <span class="gc-title">— Coming Soon</span>
+        <span class="gc-title">Marin</span>
         <div class="gc-meta">
-          <span class="gc-year">2023</span>
-          <span class="gc-cat">Branding</span>
+          <span class="gc-year">2025</span>
+          <span class="gc-cat">Typography · Graphic Design</span>
         </div>
       </div>
     </div>
 
-    <div class="gallery-card" data-cat="web">
-      <div class="gc-thumb" data-label="PROJECT IMAGE">
+    <div class="gallery-card" data-cat="print" data-lightbox-gallery="NYT Redesign/NYT 1.jpg,NYT Redesign/NYT 2.jpg,NYT Redesign/NYT 3.jpg,NYT Redesign/NYT 4.jpg,NYT Redesign/NYT 5.jpg" data-title="New York Times Redesign" data-cat2="Print · Graphic Design · Layout · Typography" data-description="Take an existing New York Times article's content and create an entirely new set of spreads for the magazine.">
+      <div class="gc-thumb" data-label="" style="background-image: url('NYT Redesign/NYT 2.jpg'); background-size: cover; background-position: center;">
         <div class="gc-overlay">
-          <span class="gc-hover-label">— Coming Soon</span>
+          <span class="gc-hover-label">New York Times Redesign</span>
           <span class="gc-hover-arrow">↗</span>
         </div>
       </div>
       <div class="gc-info">
-        <span class="gc-title">— Coming Soon</span>
+        <span class="gc-title">New York Times Redesign</span>
         <div class="gc-meta">
-          <span class="gc-year">2023</span>
-          <span class="gc-cat">Web</span>
+          <span class="gc-year">2024</span>
+          <span class="gc-cat">Print · Graphic Design</span>
         </div>
       </div>
     </div>
 
-    <div class="gallery-card" data-cat="motion">
-      <div class="gc-thumb" data-label="PROJECT IMAGE">
+    <div class="gallery-card" data-cat="print" data-lightbox-gallery="NYT Poster/Graphic-1.png,NYT Poster/Photographic-1.png,NYT Poster/Type-1.png" data-title="NYT Article Cover" data-cat2="Graphic Design · Typography · Photography" data-description="Taking an existing New York Times article, I created three unique covers — graphic, typographic, and photographic — each interpreting the same content through a different visual lens.">
+      <div class="gc-thumb" data-label="" style="background-image: url('NYT Poster/Graphic-1.png'); background-size: cover; background-position: center top;">
         <div class="gc-overlay">
-          <span class="gc-hover-label">— Coming Soon</span>
+          <span class="gc-hover-label">NYT Article Cover</span>
           <span class="gc-hover-arrow">↗</span>
         </div>
       </div>
       <div class="gc-info">
-        <span class="gc-title">— Coming Soon</span>
+        <span class="gc-title">NYT Article Cover</span>
         <div class="gc-meta">
-          <span class="gc-year">2023</span>
-          <span class="gc-cat">Motion</span>
+          <span class="gc-year">2025</span>
+          <span class="gc-cat">Graphic Design · Typography</span>
         </div>
       </div>
     </div>
 
-    <div class="gallery-card" data-cat="print">
-      <div class="gc-thumb" data-label="PROJECT IMAGE">
+    <div class="gallery-card" data-cat="print" data-lightbox="Movie Poster-1.png" data-title="Double Feature Movie Poster" data-cat2="Print · Graphic Design · Layout · Typography" data-description="Created entirely by hand using powdered sugar, then scanned in and digitally manipulated into a finished double feature poster. A tactile, analogue process brought into the digital world.">
+      <div class="gc-thumb" data-label="" style="background-image: url('Movie Poster-1.png'); background-size: cover; background-position: center;">
         <div class="gc-overlay">
-          <span class="gc-hover-label">— Coming Soon</span>
+          <span class="gc-hover-label">Double Feature Movie Poster</span>
           <span class="gc-hover-arrow">↗</span>
         </div>
       </div>
       <div class="gc-info">
-        <span class="gc-title">— Coming Soon</span>
+        <span class="gc-title">Double Feature Movie Poster</span>
         <div class="gc-meta">
-          <span class="gc-year">2023</span>
-          <span class="gc-cat">Print</span>
+          <span class="gc-year">2024</span>
+          <span class="gc-cat">Print · Graphic Design</span>
         </div>
       </div>
     </div>
 
-    <!-- 2022 -->
+    <div class="gallery-card" data-cat="print" data-lightbox="Korn Concert Poster F-1.png" data-title="Gojira Poster" data-cat2="Graphic Design · Layout · Typography" data-description="A concert poster designed for Gojira's October 2024 show at T-Mobile Center in Kansas City, MO — opening for Korn with Spiritbox also on the bill.">
+      <div class="gc-thumb" data-label="" style="background-image: url('Korn Concert Poster F-1.png'); background-size: cover; background-position: center top;">
+        <div class="gc-overlay">
+          <span class="gc-hover-label">Gojira Poster</span>
+          <span class="gc-hover-arrow">↗</span>
+        </div>
+      </div>
+      <div class="gc-info">
+        <span class="gc-title">Gojira Poster</span>
+        <div class="gc-meta">
+          <span class="gc-year">2024</span>
+          <span class="gc-cat">Graphic Design · Typography</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Coming Soon placeholders -->
     <div class="gallery-card" data-cat="ux">
       <div class="gc-thumb" data-label="PROJECT IMAGE">
         <div class="gc-overlay">
@@ -1736,7 +1818,7 @@ footer span.footer-copy { color: rgba(28,29,29,0.28); }
       <div class="gc-info">
         <span class="gc-title">— Coming Soon</span>
         <div class="gc-meta">
-          <span class="gc-year">2022</span>
+          <span class="gc-year">—</span>
           <span class="gc-cat">UX</span>
         </div>
       </div>
@@ -1752,7 +1834,7 @@ footer span.footer-copy { color: rgba(28,29,29,0.28); }
       <div class="gc-info">
         <span class="gc-title">— Coming Soon</span>
         <div class="gc-meta">
-          <span class="gc-year">2022</span>
+          <span class="gc-year">—</span>
           <span class="gc-cat">Branding</span>
         </div>
       </div>
@@ -1768,7 +1850,7 @@ footer span.footer-copy { color: rgba(28,29,29,0.28); }
       <div class="gc-info">
         <span class="gc-title">— Coming Soon</span>
         <div class="gc-meta">
-          <span class="gc-year">2022</span>
+          <span class="gc-year">—</span>
           <span class="gc-cat">Web</span>
         </div>
       </div>
@@ -2431,6 +2513,22 @@ window.addEventListener('resize', () => {
 });
 </script>
 
+<!-- ── LIGHTBOX ──────────────────────────────────────── -->
+<div class="lightbox" id="lightbox">
+  <button class="lightbox-close">ESC to close</button>
+  <button class="lightbox-nav lightbox-prev" id="lightbox-prev">←</button>
+  <button class="lightbox-nav lightbox-next" id="lightbox-next">→</button>
+  <div class="lightbox-inner">
+    <img id="lightbox-img" src="" alt="">
+    <div class="lightbox-meta">
+      <span class="lightbox-title" id="lightbox-title"></span>
+      <span class="lightbox-cat" id="lightbox-cat"></span>
+      <span class="lightbox-counter" id="lightbox-counter"></span>
+    </div>
+    <p class="lightbox-desc" id="lightbox-desc"></p>
+  </div>
+</div>
+
 <script>
 // ── ARCHIVE FILTER ────────────────────────────────────
 document.querySelectorAll('.af-btn').forEach(btn => {
@@ -2512,6 +2610,50 @@ window.addEventListener('scroll', () => {
     requestAnimationFrame(updateParallax);
   }
 }, { passive: true });
+
+// Lightbox
+const lightbox = document.getElementById('lightbox');
+const lightboxImg = document.getElementById('lightbox-img');
+const lightboxTitle = document.getElementById('lightbox-title');
+const lightboxCat = document.getElementById('lightbox-cat');
+const lightboxPrev = document.getElementById('lightbox-prev');
+const lightboxNext = document.getElementById('lightbox-next');
+const lightboxCounter = document.getElementById('lightbox-counter');
+const lightboxDesc = document.getElementById('lightbox-desc');
+
+let lbImages = [], lbIndex = 0;
+
+function lbShow(i) {
+  lbIndex = (i + lbImages.length) % lbImages.length;
+  lightboxImg.src = lbImages[lbIndex];
+  lightboxCounter.textContent = lbImages.length > 1 ? `${lbIndex + 1} / ${lbImages.length}` : '';
+  lightboxPrev.style.display = lbImages.length > 1 ? 'flex' : 'none';
+  lightboxNext.style.display = lbImages.length > 1 ? 'flex' : 'none';
+}
+
+document.querySelectorAll('.gallery-card[data-lightbox], .gallery-card[data-lightbox-gallery]').forEach(card => {
+  card.addEventListener('click', () => {
+    lbImages = card.dataset.lightboxGallery
+      ? card.dataset.lightboxGallery.split(',')
+      : [card.dataset.lightbox];
+    lightboxTitle.textContent = card.dataset.title || '';
+    lightboxCat.textContent = card.dataset.cat2 || '';
+    lightboxDesc.textContent = card.dataset.description || '';
+    lightboxDesc.style.display = card.dataset.description ? 'block' : 'none';
+    lbShow(0);
+    lightbox.classList.add('open');
+  });
+});
+
+lightboxPrev.addEventListener('click', e => { e.stopPropagation(); lbShow(lbIndex - 1); });
+lightboxNext.addEventListener('click', e => { e.stopPropagation(); lbShow(lbIndex + 1); });
+lightbox.addEventListener('click', () => lightbox.classList.remove('open'));
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') lightbox.classList.remove('open');
+  if (e.key === 'ArrowRight') lbShow(lbIndex + 1);
+  if (e.key === 'ArrowLeft') lbShow(lbIndex - 1);
+});
 </script>
+
 </body>
 </html>
