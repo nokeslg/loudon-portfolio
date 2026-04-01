@@ -83,7 +83,26 @@ nav {
   position: relative;
   overflow: hidden;
   border-bottom: 1px solid rgba(247,1,76,0.1);
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 80px;
+  align-items: start;
 }
+
+.page-header-left {}
+
+.page-header-photo {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  object-position: center top;
+  margin-top: 20px;
+  filter: grayscale(15%);
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.9s ease 0.4s, transform 0.9s cubic-bezier(0.16,1,0.3,1) 0.4s;
+}
+.page-header-photo.revealed { opacity: 1; transform: translateY(0); }
 
 /* Atmospheric top glow */
 .page-header::before {
@@ -93,6 +112,7 @@ nav {
   width: 600px; height: 600px;
   background: radial-gradient(circle, rgba(247,1,76,0.045) 0%, transparent 65%);
   pointer-events: none;
+  grid-column: 1 / -1;
 }
 
 .page-label {
@@ -607,20 +627,18 @@ footer a:hover { color: var(--red); }
 
 <!-- ── PAGE HEADER ──────────────────────────────────── -->
 <header class="page-header">
-  <div class="page-label" id="ph-label">About</div>
-  <h1 class="page-title" id="ph-title">
-    Designer.<br>
-    <span class="title-accent">Problem</span><br>
-    Solver.
-  </h1>
-  <p class="page-header-sub" id="ph-sub">
-    UI/UX and graphic designer based in Lawrence, KS — building experiences that are precise, intentional, and built to last.
-  </p>
-  <div class="ph-corner" id="ph-corner">
-    <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
-      <path d="M18 32V18H32" stroke="#F7014C" stroke-width="1.5" stroke-opacity="0.45"/>
-    </svg>
+  <div class="page-header-left">
+    <div class="page-label" id="ph-label">About</div>
+    <h1 class="page-title" id="ph-title">
+      Designer.<br>
+      <span class="title-accent">Problem</span><br>
+      Solver.
+    </h1>
+    <p class="page-header-sub" id="ph-sub">
+      UI/UX and graphic designer based in Lawrence, KS — building experiences that are precise, intentional, and built to last.
+    </p>
   </div>
+  <img src="Headshot.jpg" alt="Loudon Nokes" class="page-header-photo" id="ph-photo">
 </header>
 
 <!-- ── BIO ──────────────────────────────────────────── -->
@@ -629,7 +647,6 @@ footer a:hover { color: var(--red); }
   <div class="section-label" id="bio-label">01 — Background</div>
   <div class="bio-grid">
     <div class="bio-left">
-      <img src="Headshot.jpg" alt="Loudon Nokes" class="bio-photo">
       <div class="bio-body" id="bio-body">
         <p>Hi! I'm Loudon, a UI/UX designer studying Interaction Design at the University of Kansas.</p>
         <p>I'm passionate about design because it blends analytical problem solving with creativity. I enjoy designing user-focused experiences, refining interactions, and thinking critically about how people move through digital products.</p>
@@ -805,7 +822,7 @@ window.addEventListener('load', () => {
   setTimeout(() => reveal(document.getElementById('ph-label')), 180);
   setTimeout(() => reveal(document.getElementById('ph-title')), 300);
   setTimeout(() => reveal(document.getElementById('ph-sub')), 500);
-  setTimeout(() => reveal(document.getElementById('ph-corner')), 700);
+  setTimeout(() => reveal(document.getElementById('ph-photo')), 400);
 });
 
 // ── Bio section ────────────────────────────────────────────────────────────
