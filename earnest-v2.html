@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Earnest — Loudon Nokes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Archivo:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --red: #F7014C;
+  --black: #0A0A0B;
+  --surface: #111213;
+  --surface2: #171819;
+  --border: rgba(255,255,255,0.06);
+  --text: #E8E5E0;
+  --muted: rgba(232,229,224,0.4);
+}
+
+html { font-size: 16px; scroll-behavior: smooth; }
+
+body {
+  background: var(--black);
+  color: var(--text);
+  font-family: 'Archivo', sans-serif;
+  line-height: 1.8;
+  overflow-x: hidden;
+  cursor: crosshair;
+}
+
+/* ── SCROLL REVEAL ─── */
+.reveal { opacity: 0; transform: translateY(20px); transition: opacity 0.7s cubic-bezier(0.16,1,0.3,1), transform 0.7s cubic-bezier(0.16,1,0.3,1); }
+.reveal.revealed { opacity: 1; transform: translateY(0); }
+.reveal-fast { opacity: 0; transform: translateY(10px); transition: opacity 0.5s ease, transform 0.5s ease; }
+.reveal-fast.revealed { opacity: 1; transform: translateY(0); }
+
+/* ── NAV ─── */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 48px;
+  height: 76px;
+  background: rgba(10,10,11,0.85);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-bottom: 1px solid var(--border);
+}
+.nav-logo { display: flex; align-items: center; text-decoration: none; }
+.nav-logo svg { height: 28px; width: auto; display: block; }
+.nav-back {
+  display: flex; align-items: center; gap: 10px;
+  font-family: 'Syne', sans-serif; font-size: 0.63rem;
+  letter-spacing: 0.22em; text-transform: uppercase;
+  color: rgba(255,255,255,0.3); text-decoration: none;
+  transition: color 0.15s;
+}
+.nav-back:hover { color: var(--red); }
+.nav-back-arrow { transition: transform 0.15s; }
+.nav-back:hover .nav-back-arrow { transform: translateX(-3px); }
+
+/* ── HERO ─── */
+.project-hero {
+  padding: 160px 80px 120px;
+  position: relative;
+  overflow: hidden;
+  border-bottom: 1px solid var(--border);
+}
+.hero-accent-bar {
+  position: absolute;
+  top: 0; left: 0;
+  width: 3px;
+  height: 100%;
+  background: linear-gradient(to bottom, var(--red), transparent);
+}
+.hero-accent-glow {
+  position: absolute;
+  top: -200px; left: -100px;
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(247,1,76,0.06) 0%, transparent 60%);
+  pointer-events: none;
+}
+.hero-kicker {
+  font-family: 'Syne', sans-serif;
+  font-size: 0.6rem; letter-spacing: 0.3em;
+  text-transform: uppercase; color: var(--red);
+  margin-bottom: 32px; display: flex;
+  align-items: center; gap: 14px; opacity: 0.8;
+}
+.hero-kicker::before { content: ''; display: block; width: 28px; height: 1px; background: var(--red); }
+.project-title {
+  font-family: 'Syne', sans-serif; font-weight: 800;
+  font-size: clamp(72px, 11vw, 160px);
+  letter-spacing: -0.03em; line-height: 0.88;
+  color: var(--text); margin-bottom: 40px;
+}
+.hero-divider {
+  width: 100%; height: 1px;
+  background: linear-gradient(to right, var(--red), transparent);
+  margin-bottom: 40px; opacity: 0.3;
+}
+.hero-bottom {
+  display: flex; align-items: flex-end;
+  justify-content: space-between; gap: 60px;
+}
+.hero-tagline {
+  font-size: clamp(15px, 1.3vw, 18px);
+  color: var(--muted); max-width: 540px; line-height: 1.7;
+}
+.project-tags { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.project-tag {
+  font-family: 'Syne', sans-serif; font-size: 0.55rem;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--red); border: 1px solid rgba(247,1,76,0.25);
+  padding: 6px 14px;
+}
+
+/* ── OVERVIEW ─── */
+.overview { display: grid; grid-template-columns: repeat(4, 1fr); }
+.overview-item {
+  padding: 40px 48px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.overview-item:last-child { border-right: none; }
+.ov-label {
+  font-family: 'Syne', sans-serif; font-size: 0.52rem;
+  letter-spacing: 0.28em; text-transform: uppercase;
+  color: rgba(247,1,76,0.5); margin-bottom: 14px; display: block;
+}
+.ov-value {
+  font-family: 'Syne', sans-serif; font-weight: 700;
+  font-size: 14px; color: var(--text); line-height: 1.6;
+}
+
+/* ── SHARED SECTION ─── */
+.cs-section {
+  padding: 100px 120px;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+}
+.cs-section-alt { background: var(--surface); }
+
+.section-eyebrow {
+  font-family: 'Syne', sans-serif; font-size: 0.56rem;
+  letter-spacing: 0.32em; text-transform: uppercase;
+  color: var(--red); margin-bottom: 52px;
+  display: flex; align-items: center; gap: 14px; opacity: 0.7;
+}
+.section-eyebrow::before { content: ''; display: block; width: 28px; height: 1px; background: var(--red); opacity: 0.5; }
+
+.section-body {
+  font-family: 'Archivo', sans-serif;
+  font-size: clamp(15px, 1.15vw, 17px);
+  color: var(--muted); line-height: 1.85; max-width: 680px;
+}
+
+/* ── PROBLEM / HMW ─── */
+.hmw-block {
+  margin-top: 48px; padding: 52px 56px;
+  background: rgba(247,1,76,0.04);
+  border: 1px solid rgba(247,1,76,0.2);
+  position: relative;
+}
+.hmw-block::before {
+  content: ''; position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px; background: var(--red);
+}
+.hmw-label {
+  font-family: 'Syne', sans-serif; font-size: 0.52rem;
+  letter-spacing: 0.3em; text-transform: uppercase;
+  color: rgba(247,1,76,0.6); margin-bottom: 20px; display: block;
+}
+.hmw-question {
+  font-family: 'Syne', sans-serif; font-weight: 700;
+  font-size: clamp(20px, 2.2vw, 30px); color: var(--text);
+  line-height: 1.35; letter-spacing: -0.01em;
+}
+
+/* ── APP PREVIEW ─── */
+.preview-images {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 3px;
+}
+.preview-images img { width: 100%; height: auto; display: block; }
+
+/* ── SOLUTION ─── */
+.solution-statement {
+  font-family: 'Syne', sans-serif; font-weight: 700;
+  font-size: clamp(20px, 2vw, 28px); color: rgba(232,229,224,0.75);
+  line-height: 1.45; max-width: 820px; margin-bottom: 64px;
+  letter-spacing: -0.01em;
+}
+.solution-mockup { margin-bottom: 64px; }
+.solution-mockup img {
+  width: 100%; height: auto; display: block;
+  box-shadow: 0 40px 100px rgba(0,0,0,0.6);
+}
+.features-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px;
+}
+.feature-tile {
+  padding: 36px 32px; background: var(--surface2);
+  border: 1px solid var(--border);
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+.feature-tile:hover { background: rgba(247,1,76,0.04); border-color: rgba(247,1,76,0.2); }
+.feature-icon { width: 32px; height: 32px; margin-bottom: 18px; color: var(--red); opacity: 0.8; }
+.feature-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 14px; color: var(--text); margin-bottom: 10px; }
+.feature-desc { font-family: 'Archivo', sans-serif; font-size: 13px; color: var(--muted); line-height: 1.65; }
+
+/* ── RESEARCH GOALS ─── */
+.goals-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; }
+.goal-item {
+  padding: 40px 44px; background: var(--surface2);
+  display: flex; gap: 24px; align-items: flex-start;
+}
+.goal-num {
+  font-family: 'Syne', sans-serif; font-weight: 800;
+  font-size: 11px; letter-spacing: 0.18em;
+  color: rgba(247,1,76,0.4); padding-top: 4px; flex-shrink: 0;
+}
+.goal-text {
+  font-family: 'Archivo', sans-serif;
+  font-size: clamp(15px, 1.2vw, 17px);
+  color: rgba(232,229,224,0.6); line-height: 1.7;
+}
+
+/* ── PRIMARY RESEARCH ─── */
+.primary-research-body { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; }
+.pr-text { font-family: 'Archivo', sans-serif; font-size: 15px; color: var(--muted); line-height: 1.75; }
+.pr-topics { display: flex; flex-wrap: wrap; gap: 8px; align-content: flex-start; }
+.pr-topic-item {
+  padding: 10px 18px;
+  background: rgba(247,1,76,0.06);
+  border: 1px solid rgba(247,1,76,0.18);
+  font-family: 'Syne', sans-serif; font-weight: 700;
+  font-size: 0.7rem; letter-spacing: 0.06em;
+  color: rgba(247,1,76,0.8);
+}
+
+/* ── STATS — ring charts ─── */
+.stats-section {
+  padding: 100px 120px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+.stats-eyebrow {
+  font-family: 'Syne', sans-serif; font-size: 0.56rem;
+  letter-spacing: 0.32em; text-transform: uppercase;
+  color: var(--red); margin-bottom: 64px;
+  display: flex; align-items: center; gap: 14px; opacity: 0.7;
+}
+.stats-eyebrow::before { content: ''; display: block; width: 28px; height: 1px; background: var(--red); opacity: 0.5; }
+.stats-rings { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+.ring-stat {
+  padding: 64px 56px;
+  background: var(--black);
+  display: flex; align-items: flex-start; gap: 48px;
+}
+.ring-chart-wrap {
+  flex-shrink: 0;
+  position: relative;
+  width: 140px; height: 140px;
+}
+.ring-chart { width: 140px; height: 140px; transform: rotate(-90deg); }
+.ring-bg { fill: none; stroke: rgba(255,255,255,0.06); stroke-width: 10; }
+.ring-fill {
+  fill: none; stroke: var(--red); stroke-width: 10;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1.4s cubic-bezier(0.4,0,0.2,1);
+}
+.ring-label {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: 'Syne', sans-serif; font-weight: 800;
+  font-size: 28px; color: var(--red);
+  letter-spacing: -0.03em; line-height: 1;
+}
+.ring-content { flex: 1; padding-top: 8px; }
+.ring-source {
+  font-family: 'Syne', sans-serif; font-size: 0.52rem;
+  letter-spacing: 0.28em; text-transform: uppercase;
+  color: rgba(255,255,255,0.2); margin-bottom: 16px; display: block;
+}
+.ring-text {
+  font-family: 'Archivo', sans-serif; font-size: 16px;
+  color: rgba(232,229,224,0.55); line-height: 1.7; max-width: 340px;
+}
+
+/* ── COMPETITOR ─── */
+.comp-table-wrap { overflow-x: auto; }
+.comp-table { width: 100%; border-collapse: collapse; }
+.comp-table th, .comp-table td {
+  padding: 18px 24px; text-align: left;
+  border-bottom: 1px solid var(--border);
+  font-family: 'Archivo', sans-serif; font-size: 13px;
+}
+.comp-table th {
+  font-family: 'Syne', sans-serif; font-size: 0.52rem;
+  letter-spacing: 0.24em; text-transform: uppercase;
+  color: rgba(247,1,76,0.5); background: rgba(247,1,76,0.03); font-weight: 400;
+}
+.comp-table td { color: var(--muted); }
+.comp-table tr:hover td { background: rgba(255,255,255,0.01); }
+.comp-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 14px; color: var(--text) !important; }
+.comp-earnest { color: var(--red) !important; }
+.check { color: rgba(80,200,120,0.8); font-size: 15px; }
+.cross { color: rgba(255,255,255,0.15); }
+
+/* feature score dots */
+.dots { display: flex; gap: 4px; align-items: center; }
+.dot { width: 8px; height: 8px; border-radius: 50%; }
+.dot-on { background: rgba(80,200,120,0.8); }
+.dot-off { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.1); }
+
+/* ── USER JOURNEY — timeline ─── */
+.journey-timeline {
+  position: relative;
+  margin-top: 0;
+}
+.timeline-connector {
+  position: absolute;
+  top: 28px; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(to right, var(--red), rgba(247,1,76,0.1));
+  pointer-events: none;
+}
+.journey-stages {
+  display: grid; grid-template-columns: repeat(6, 1fr);
+  gap: 2px; position: relative; z-index: 1;
+}
+.journey-stage {
+  padding: 28px 20px;
+  background: var(--surface2);
+  display: flex; flex-direction: column; gap: 14px;
+  border-top: 2px solid transparent;
+  transition: border-color 0.2s;
+}
+.journey-stage:hover { border-color: var(--red); }
+.stage-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--red); margin-bottom: 4px;
+  box-shadow: 0 0 8px rgba(247,1,76,0.4);
+}
+.stage-num {
+  font-family: 'Syne', sans-serif; font-weight: 800;
+  font-size: 10px; letter-spacing: 0.2em; color: rgba(247,1,76,0.4);
+}
+.stage-label { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 12px; color: var(--text); line-height: 1.4; }
+.stage-action { font-family: 'Archivo', sans-serif; font-size: 12px; color: var(--muted); line-height: 1.55; }
+.journey-quotes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; margin-top: 2px; }
+.journey-quote {
+  padding: 28px 24px; background: rgba(247,1,76,0.03);
+  border-top: 1px solid rgba(247,1,76,0.12);
+}
+.journey-quote-text {
+  font-family: 'Archivo', sans-serif; font-size: 14px;
+  color: rgba(232,229,224,0.45); line-height: 1.65; font-style: italic;
+}
+.journey-quote-text::before { content: '"'; }
+.journey-quote-text::after { content: '"'; }
+
+/* ── KEY INSIGHT ─── */
+.insight-banner {
+  padding: 80px 120px;
+  background: var(--red);
+  position: relative; overflow: hidden;
+  border-bottom: 1px solid rgba(0,0,0,0.2);
+}
+.insight-banner::before {
+  content: 'INSIGHT';
+  position: absolute; right: 60px; top: 50%;
+  transform: translateY(-50%);
+  font-family: 'Syne', sans-serif; font-weight: 800;
+  font-size: 200px; letter-spacing: -0.05em;
+  color: rgba(255,255,255,0.05); line-height: 1;
+  pointer-events: none; user-select: none;
+}
+.insight-label {
+  font-family: 'Syne', sans-serif; font-size: 0.54rem;
+  letter-spacing: 0.3em; text-transform: uppercase;
+  color: rgba(255,255,255,0.6); margin-bottom: 24px; display: block;
+}
+.insight-text {
+  font-family: 'Syne', sans-serif; font-weight: 800;
+  font-size: clamp(20px, 2.5vw, 36px); color: white;
+  line-height: 1.3; letter-spacing: -0.015em; max-width: 900px;
+}
+
+/* ── OBJECTIVES ─── */
+.objectives-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; }
+.objective-item {
+  padding: 48px 40px; background: var(--surface2);
+  display: flex; flex-direction: column; gap: 16px;
+}
+.objective-num {
+  font-family: 'Syne', sans-serif; font-weight: 800;
+  font-size: 64px; color: rgba(247,1,76,0.1); line-height: 1;
+}
+.objective-text { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 16px; color: var(--text); line-height: 1.4; }
+
+/* ── IMAGES ─── */
+.screens-image {
+  width: 100%; height: auto; display: block;
+  box-shadow: 0 40px 100px rgba(0,0,0,0.5);
+}
+
+/* ── TESTING — visual scores ─── */
+.testing-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; }
+.testing-col-label {
+  font-family: 'Syne', sans-serif; font-size: 0.52rem;
+  letter-spacing: 0.28em; text-transform: uppercase;
+  color: rgba(247,1,76,0.5); margin-bottom: 24px; display: block;
+}
+.testing-body { font-family: 'Archivo', sans-serif; font-size: 15px; color: var(--muted); line-height: 1.75; margin-bottom: 24px; }
+
+.score-gauges { display: flex; flex-direction: column; gap: 16px; margin: 24px 0; }
+.score-gauge { }
+.score-gauge-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 8px;
+}
+.score-gauge-label { font-family: 'Syne', sans-serif; font-size: 11px; letter-spacing: 0.1em; color: var(--muted); }
+.score-gauge-num { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 18px; color: var(--red); }
+.score-bar-track {
+  width: 100%; height: 4px; background: rgba(255,255,255,0.06);
+  border-radius: 2px; overflow: hidden;
+}
+.score-bar-fill {
+  height: 100%; background: var(--red); border-radius: 2px;
+  transition: width 1s ease;
+}
+
+.testing-findings { display: flex; flex-direction: column; gap: 8px; }
+.finding-item {
+  padding: 18px 20px; background: var(--surface2);
+  border-left: 2px solid rgba(247,1,76,0.2);
+  font-family: 'Archivo', sans-serif; font-size: 13px;
+  color: var(--muted); line-height: 1.55;
+}
+
+/* ── BEFORE/AFTER ─── */
+.before-after-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; }
+.ba-col { padding: 40px 44px; background: var(--surface2); }
+.ba-label {
+  font-family: 'Syne', sans-serif; font-size: 0.52rem;
+  letter-spacing: 0.28em; text-transform: uppercase;
+  color: rgba(247,1,76,0.5); margin-bottom: 20px; display: block;
+}
+.ba-text { font-family: 'Archivo', sans-serif; font-size: 14px; color: var(--muted); line-height: 1.7; }
+
+/* ── PROTOTYPE ─── */
+.prototype-embed { position: relative; width: 100%; padding-bottom: 56.25%; height: 0; overflow: hidden; }
+.prototype-embed iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 1px solid var(--border); }
+
+/* ── BRANDING ─── */
+.branding-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; }
+.branding-col { padding: 48px 44px; background: var(--surface2); }
+.branding-col-label {
+  font-family: 'Syne', sans-serif; font-size: 0.52rem;
+  letter-spacing: 0.28em; text-transform: uppercase;
+  color: rgba(247,1,76,0.5); margin-bottom: 24px; display: block;
+}
+.color-swatches { display: flex; gap: 16px; flex-wrap: wrap; }
+.swatch { display: flex; flex-direction: column; gap: 10px; }
+.swatch-block { width: 80px; height: 56px; border-radius: 2px; }
+.swatch-hex { font-family: 'Archivo', sans-serif; font-size: 11px; letter-spacing: 0.1em; color: var(--muted); }
+.type-sample-lg { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 40px; color: var(--text); letter-spacing: -0.02em; line-height: 1; margin-bottom: 8px; }
+.type-sample-sm { font-family: 'Archivo', sans-serif; font-size: 15px; color: var(--muted); line-height: 1.65; }
+
+/* ── NEXT PROJECT ─── */
+.next-project {
+  padding: 100px 80px; display: flex;
+  align-items: center; justify-content: space-between;
+  text-decoration: none; border-bottom: 1px solid var(--border);
+  position: relative; overflow: hidden;
+}
+.next-project::before { content: ''; position: absolute; inset: 0; background: rgba(247,1,76,0.03); opacity: 0; transition: opacity 0.2s; }
+.next-project:hover::before { opacity: 1; }
+.next-label { font-family: 'Syne', sans-serif; font-size: 0.6rem; letter-spacing: 0.28em; text-transform: uppercase; color: rgba(255,255,255,0.2); margin-bottom: 12px; }
+.next-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: clamp(32px, 5vw, 64px); letter-spacing: -0.01em; color: var(--text); transition: color 0.2s; }
+.next-project:hover .next-title { color: var(--red); }
+.next-arrow { font-size: 2.5rem; color: rgba(255,255,255,0.15); transition: transform 0.2s, color 0.2s; }
+.next-project:hover .next-arrow { transform: translateX(8px); color: var(--red); }
+
+/* ── FOOTER ─── */
+footer { padding: 28px 80px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+footer a { font-family: 'Archivo', sans-serif; font-size: 0.72rem; letter-spacing: 0.14em; color: rgba(255,255,255,0.26); text-decoration: none; transition: color 0.15s; }
+footer a:hover { color: var(--red); }
+.footer-copy { font-family: 'Archivo', sans-serif; font-size: 0.65rem; letter-spacing: 0.14em; color: rgba(255,255,255,0.14); }
+
+/* ── RESPONSIVE ─── */
+@media (max-width: 960px) {
+  .brief-grid, .primary-research-body, .testing-grid, .branding-grid { grid-template-columns: 1fr; gap: 40px; }
+  .features-grid { grid-template-columns: 1fr 1fr; }
+  .journey-stages { grid-template-columns: repeat(3, 1fr); }
+  .journey-quotes { grid-template-columns: 1fr; }
+  .stats-rings { grid-template-columns: 1fr; }
+  .ring-stat { flex-direction: column; gap: 28px; }
+}
+@media (max-width: 768px) {
+  nav { padding: 0 24px; height: 64px; }
+  .project-hero { padding: 120px 24px 60px; }
+  .overview { grid-template-columns: 1fr 1fr; }
+  .overview-item { padding: 28px 24px; }
+  .cs-section { padding: 64px 24px; }
+  .stats-section { padding: 64px 24px; }
+  .insight-banner { padding: 64px 24px; }
+  .goals-grid, .research-cols, .objectives-grid, .before-after-grid { grid-template-columns: 1fr; }
+  .features-grid { grid-template-columns: 1fr; }
+  .journey-stages { grid-template-columns: 1fr 1fr; }
+  .next-project { padding: 60px 24px; }
+  footer { padding: 24px; flex-direction: column; gap: 14px; text-align: center; }
+  .hero-bottom { flex-direction: column; align-items: flex-start; gap: 24px; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo">
+    <svg width="133" height="216" viewBox="0 0 133 216" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M40 27.4277V121.629H45.9307V85.2197H132.139V215.439L92.1377 188.011V93.8105H85.9307V130.22H0V0L40 27.4277Z" fill="#F7014C"/>
+    </svg>
+  </a>
+  <a href="index.html" class="nav-back"><span class="nav-back-arrow">←</span> All Work</a>
+</nav>
+
+<header class="project-hero">
+  <div class="hero-accent-bar"></div>
+  <div class="hero-accent-glow"></div>
+  <div class="hero-kicker reveal-fast" id="rl-hero-label">Case Study — 01</div>
+  <h1 class="project-title reveal" id="rl-title">Earnest</h1>
+  <div class="hero-divider"></div>
+  <div class="hero-bottom">
+    <p class="hero-tagline reveal" id="rl-tagline" style="transition-delay:0.15s">
+      Designed to simplify money management for parents. Providing knowledge, organization, and resources to navigate children's finances.
+    </p>
+    <div class="project-tags reveal" id="rl-meta" style="transition-delay:0.25s">
+      <span class="project-tag">UX Case Study</span>
+      <span class="project-tag">Fintech</span>
+      <span class="project-tag">Real-World Interviews</span>
+    </div>
+  </div>
+</header>
+
+<div class="overview">
+  <div class="overview-item reveal" id="rl-ov0"><span class="ov-label">Role</span><span class="ov-value">UI/UX Designer<br>Brand Designer</span></div>
+  <div class="overview-item reveal" id="rl-ov1" style="transition-delay:0.07s"><span class="ov-label">Type</span><span class="ov-value">App Design<br>Brand Identity</span></div>
+  <div class="overview-item reveal" id="rl-ov2" style="transition-delay:0.14s"><span class="ov-label">Tools</span><span class="ov-value">Figma<br>Illustrator</span></div>
+  <div class="overview-item reveal" id="rl-ov3" style="transition-delay:0.21s"><span class="ov-label">Team</span><span class="ov-value">2 Designers</span></div>
+</div>
+
+<section class="cs-section">
+  <div class="section-eyebrow reveal-fast">Project Brief</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:start">
+    <p class="section-body reveal">
+      In this project, we worked in groups of 2 to explore challenges faced by a specific user group within fintech. We explored financial struggles within a parent-focused user group — specifically how parents manage allowances, chores, and financial education for their children.
+    </p>
+    <div style="display:flex;flex-direction:column;gap:32px">
+      <div class="reveal"><span style="font-family:'Syne',sans-serif;font-size:0.52rem;letter-spacing:0.28em;text-transform:uppercase;color:rgba(247,1,76,0.5);margin-bottom:8px;display:block">Discipline</span><span style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px;color:var(--text)">Visual Design / Branding<br>UI/UX Design</span></div>
+      <div class="reveal" style="transition-delay:0.1s"><span style="font-family:'Syne',sans-serif;font-size:0.52rem;letter-spacing:0.28em;text-transform:uppercase;color:rgba(247,1,76,0.5);margin-bottom:8px;display:block">Context</span><span style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px;color:var(--text)">Interaction Design, University of Kansas</span></div>
+      <div class="reveal" style="transition-delay:0.2s"><span style="font-family:'Syne',sans-serif;font-size:0.52rem;letter-spacing:0.28em;text-transform:uppercase;color:rgba(247,1,76,0.5);margin-bottom:8px;display:block">Year</span><span style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px;color:var(--text)">2025</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="cs-section">
+  <div class="section-eyebrow reveal-fast">Problem</div>
+  <p class="section-body reveal">
+    Parents struggle to find a simple, unified tool to manage their kids' allowances, track chores, and teach foundational money skills — all without relying on cash or juggling multiple apps.
+  </p>
+  <div class="hmw-block reveal">
+    <span class="hmw-label">How Might We</span>
+    <p class="hmw-question">How might we help parents easily manage chores and allowances while teaching their kids about money?</p>
+  </div>
+</section>
+
+<section class="cs-section" style="padding-bottom:0">
+  <div class="section-eyebrow reveal-fast">App Preview</div>
+  <div class="preview-images">
+    <img src="Earnest Case Study/iPhone.png" alt="Earnest App — Home Screen">
+    <img src="Earnest Case Study/iPhone-1.png" alt="Earnest App — Allowance Screen">
+  </div>
+</section>
+
+<section class="cs-section cs-section-alt">
+  <div class="section-eyebrow reveal-fast">Solution</div>
+  <p class="solution-statement reveal">Provide parents with an easy way to manage chores, allowances, and their account balance — while teaching their kids about money.</p>
+  <div class="solution-mockup">
+    <img src="Earnest Case Study/earnest-solution.png" alt="Earnest App — Solution Screens">
+  </div>
+  <div class="features-grid">
+    <div class="feature-tile reveal">
+      <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 6h18M3 12h18M3 18h18"/><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+      <div class="feature-name">Allowance Tracking</div>
+      <div class="feature-desc">Monitor each child's balance, earning history, and weekly allowances in one place.</div>
+    </div>
+    <div class="feature-tile reveal" style="transition-delay:0.07s">
+      <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 9h20M2 15h20M9 3v18M15 3v18" stroke-linecap="round"/><rect x="2" y="3" width="20" height="18" rx="2"/></svg>
+      <div class="feature-name">Bank Integration</div>
+      <div class="feature-desc">Connect your bank account to manage funds and allocate allowances automatically.</div>
+    </div>
+    <div class="feature-tile reveal" style="transition-delay:0.14s">
+      <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div class="feature-name">Built-in Learning Platform</div>
+      <div class="feature-desc">Age-appropriate lessons, articles, and podcasts to build financial literacy over time.</div>
+    </div>
+    <div class="feature-tile reveal" style="transition-delay:0.07s">
+      <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 11l3 3L22 4" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" stroke-linecap="round"/></svg>
+      <div class="feature-name">Chore Management</div>
+      <div class="feature-desc">Assign, track, and reward chores with automatic balance updates when tasks are completed.</div>
+    </div>
+    <div class="feature-tile reveal" style="transition-delay:0.14s">
+      <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22C6.48 22 2 17.52 2 12S6.48 2 12 2s10 4.48 10 10-4.48 10-10 10z"/><path d="M12 6v6l4 2" stroke-linecap="round"/></svg>
+      <div class="feature-name">Kids Overview</div>
+      <div class="feature-desc">A dedicated dashboard for parents to see each child's progress, tasks, and savings goals.</div>
+    </div>
+    <div class="feature-tile reveal" style="transition-delay:0.21s">
+      <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" stroke-linecap="round"/></svg>
+      <div class="feature-name">No Subscription</div>
+      <div class="feature-desc">Core features available without a paywall — accessible to all families.</div>
+    </div>
+  </div>
+</section>
+
+<section class="cs-section">
+  <div class="section-eyebrow reveal-fast">Research Goals</div>
+  <div class="goals-grid">
+    <div class="goal-item reveal"><span class="goal-num">01</span><p class="goal-text">Investigate how parents determine and manage allowances.</p></div>
+    <div class="goal-item reveal" style="transition-delay:0.07s"><span class="goal-num">02</span><p class="goal-text">Identify key challenges in allowance budgeting and tracking.</p></div>
+    <div class="goal-item reveal" style="transition-delay:0.14s"><span class="goal-num">03</span><p class="goal-text">Explore how allowances teach money management and saving.</p></div>
+    <div class="goal-item reveal" style="transition-delay:0.21s"><span class="goal-num">04</span><p class="goal-text">Evaluate how digital tools simplify allowance management.</p></div>
+  </div>
+</section>
+
+<section class="cs-section cs-section-alt">
+  <div class="section-eyebrow reveal-fast">Primary Research</div>
+  <div class="primary-research-body">
+    <div>
+      <p class="section-body reveal" style="margin-bottom:28px">We conducted interviews with parents within our user group to learn more about how to help solve this problem.</p>
+      <p class="section-body reveal" style="transition-delay:0.1s">We asked questions covering 7 broad topics — then compiled 1+ hours of audio into standout quotes and physically sorted them to find patterns.</p>
+    </div>
+    <div class="pr-topics">
+      <div class="pr-topic-item reveal">Allowance Basics</div>
+      <div class="pr-topic-item reveal" style="transition-delay:0.05s">Goals &amp; Intentions</div>
+      <div class="pr-topic-item reveal" style="transition-delay:0.1s">Teaching Values &amp; Money Management</div>
+      <div class="pr-topic-item reveal" style="transition-delay:0.15s">Digital Tool Adoption</div>
+      <div class="pr-topic-item reveal" style="transition-delay:0.2s">Chore &amp; Reward Systems</div>
+      <div class="pr-topic-item reveal" style="transition-delay:0.25s">Saving &amp; Goal-Setting</div>
+      <div class="pr-topic-item reveal" style="transition-delay:0.3s">Pain Points &amp; Frustrations</div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS with ring charts -->
+<div class="stats-section">
+  <div class="stats-eyebrow reveal-fast">Secondary Research</div>
+  <div class="stats-rings">
+    <div class="ring-stat reveal">
+      <div class="ring-chart-wrap">
+        <!-- 65%: circumference=263.9, offset=92.4 (35% unfilled) -->
+        <svg class="ring-chart" viewBox="0 0 100 100">
+          <circle class="ring-bg" cx="50" cy="50" r="42"/>
+          <circle class="ring-fill" cx="50" cy="50" r="42"
+            stroke-dasharray="263.9" stroke-dashoffset="92.4"/>
+        </svg>
+        <div class="ring-label">65%</div>
+      </div>
+      <div class="ring-content">
+        <span class="ring-source">Wells Fargo</span>
+        <p class="ring-text">of parents feel it is difficult to step back and watch their kids make their own money mistakes.</p>
+      </div>
+    </div>
+    <div class="ring-stat reveal" style="transition-delay:0.12s">
+      <div class="ring-chart-wrap">
+        <!-- 70%: circumference=263.9, offset=79.2 (30% unfilled) -->
+        <svg class="ring-chart" viewBox="0 0 100 100">
+          <circle class="ring-bg" cx="50" cy="50" r="42"/>
+          <circle class="ring-fill" cx="50" cy="50" r="42"
+            stroke-dasharray="263.9" stroke-dashoffset="79.2"/>
+        </svg>
+        <div class="ring-label">70%</div>
+      </div>
+      <div class="ring-content">
+        <span class="ring-source">PR Newswire</span>
+        <p class="ring-text">of parents believe that teaching kids about money today means focusing on digital tools, rather than cash.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section class="cs-section">
+  <div class="section-eyebrow reveal-fast">Competitor Analysis</div>
+  <div class="comp-table-wrap reveal">
+    <table class="comp-table">
+      <thead>
+        <tr>
+          <th>App</th>
+          <th>Allowance Tracking</th>
+          <th>Chore Management</th>
+          <th>Learning Platform</th>
+          <th>Bank Integration</th>
+          <th>No Subscription</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td class="comp-name comp-earnest">Earnest</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td></tr>
+        <tr><td class="comp-name">Greenlight</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="cross">✗</td></tr>
+        <tr><td class="comp-name">BusyKid</td><td class="check">✓</td><td class="check">✓</td><td class="cross">✗</td><td class="check">✓</td><td class="cross">✗</td></tr>
+        <tr><td class="comp-name">GoHenry</td><td class="check">✓</td><td class="cross">✗</td><td class="check">✓</td><td class="check">✓</td><td class="cross">✗</td></tr>
+        <tr><td class="comp-name">RoosterMoney</td><td class="check">✓</td><td class="check">✓</td><td class="cross">✗</td><td class="cross">✗</td><td class="cross">✗</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="cs-section cs-section-alt">
+  <div class="section-eyebrow reveal-fast">User Journey</div>
+  <div class="journey-timeline">
+    <div class="journey-stages">
+      <div class="journey-stage reveal"><div class="stage-dot"></div><span class="stage-num">01</span><div class="stage-label">Login / Home Overview</div><div class="stage-action">Opens the app and logs in. Views account balance and allowance overview.</div></div>
+      <div class="journey-stage reveal" style="transition-delay:0.06s"><div class="stage-dot"></div><span class="stage-num">02</span><div class="stage-label">Review Account Balance</div><div class="stage-action">Sees how much each child has earned and what's pending.</div></div>
+      <div class="journey-stage reveal" style="transition-delay:0.12s"><div class="stage-dot"></div><span class="stage-num">03</span><div class="stage-label">Unsure What Chore to Add</div><div class="stage-action">Hesitates about what chores are age-appropriate or fair.</div></div>
+      <div class="journey-stage reveal" style="transition-delay:0.18s"><div class="stage-dot"></div><span class="stage-num">04</span><div class="stage-label">Explore the Learn Tab</div><div class="stage-action">Visits the Learn tab — listens to a short podcast about age-appropriate chores.</div></div>
+      <div class="journey-stage reveal" style="transition-delay:0.24s"><div class="stage-dot"></div><span class="stage-num">05</span><div class="stage-label">Add Chore to To-Do List</div><div class="stage-action">Returns to Chores tab and adds "Take out the trash every Friday" for Noah.</div></div>
+      <div class="journey-stage reveal" style="transition-delay:0.3s"><div class="stage-dot"></div><span class="stage-num">06</span><div class="stage-label">Task Completed</div><div class="stage-action">Sees confirmation of the new chore added successfully.</div></div>
+    </div>
+  </div>
+  <div class="journey-quotes">
+    <div class="journey-quote reveal"><p class="journey-quote-text">Okay, let's check where we're at this week.</p></div>
+    <div class="journey-quote reveal" style="transition-delay:0.08s"><p class="journey-quote-text">What's reasonable for an 8-year-old? I don't want it to feel like just money for chores.</p></div>
+    <div class="journey-quote reveal" style="transition-delay:0.16s"><p class="journey-quote-text">Perfect — now I can track this and feel good about how I'm teaching him responsibility.</p></div>
+  </div>
+</section>
+
+<!-- KEY INSIGHT — red banner -->
+<div class="insight-banner">
+  <span class="insight-label">Key Insight</span>
+  <p class="insight-text reveal">Parents don't just want to track money — they want a tool that helps them be intentional about raising financially aware kids. The emotional weight of that responsibility is the real design problem.</p>
+</div>
+
+<section class="cs-section">
+  <div class="section-eyebrow reveal-fast">Objectives</div>
+  <div class="objectives-grid">
+    <div class="objective-item reveal"><div class="objective-num">01</div><div class="objective-text">Provide parents with stability and confidence managing their kids' finances.</div></div>
+    <div class="objective-item reveal" style="transition-delay:0.1s"><div class="objective-num">02</div><div class="objective-text">Provide kids with an intuitive, engaging experience they actually want to use.</div></div>
+    <div class="objective-item reveal" style="transition-delay:0.2s"><div class="objective-num">03</div><div class="objective-text">Provide knowledge and resources to teach real-world financial literacy.</div></div>
+  </div>
+</section>
+
+<section class="cs-section cs-section-alt">
+  <div class="section-eyebrow reveal-fast">Ideation &amp; Sketching</div>
+  <p class="section-body reveal" style="margin-bottom:48px">Before moving to digital, we sketched out initial flows and layouts to explore the information architecture and key interactions quickly.</p>
+  <img class="screens-image reveal" src="Earnest Case Study/earnest-sketches.png" alt="Earnest — Initial Sketches">
+</section>
+
+<section class="cs-section">
+  <div class="section-eyebrow reveal-fast">Wireframes</div>
+  <p class="section-body reveal" style="margin-bottom:48px">Low-fidelity wireframes were used to rapidly test core flows — onboarding, chore assignment, and the allowance dashboard — before committing to the full visual design.</p>
+  <img class="screens-image reveal" src="Earnest Case Study/earnest-first-wireframes.png" alt="Earnest — Wireframes" style="margin-bottom:4px">
+  <img class="screens-image" src="Earnest Case Study/earnest-second-wireframes.png" alt="Earnest — Wireframes continued">
+</section>
+
+<section class="cs-section cs-section-alt">
+  <div class="section-eyebrow reveal-fast">User Testing</div>
+  <div class="testing-grid">
+    <div>
+      <span class="testing-col-label">The Task</span>
+      <p class="testing-body reveal">We gave our users a task: add a new allowance for one of the children and add a new chore to the other.</p>
+      <p class="testing-body reveal" style="transition-delay:0.1s">Users ranked the experience <strong style="color:var(--text)">3, 3, 4</strong> out of 10.</p>
+      <div class="score-gauges reveal" style="transition-delay:0.15s">
+        <div class="score-gauge">
+          <div class="score-gauge-header">
+            <span class="score-gauge-label">User 1</span>
+            <span class="score-gauge-num">3/10</span>
+          </div>
+          <div class="score-bar-track"><div class="score-bar-fill" style="width:30%"></div></div>
+        </div>
+        <div class="score-gauge">
+          <div class="score-gauge-header">
+            <span class="score-gauge-label">User 2</span>
+            <span class="score-gauge-num">3/10</span>
+          </div>
+          <div class="score-bar-track"><div class="score-bar-fill" style="width:30%"></div></div>
+        </div>
+        <div class="score-gauge">
+          <div class="score-gauge-header">
+            <span class="score-gauge-label">User 3</span>
+            <span class="score-gauge-num">4/10</span>
+          </div>
+          <div class="score-bar-track"><div class="score-bar-fill" style="width:40%"></div></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <span class="testing-col-label">What Users Told Us</span>
+      <div class="testing-findings">
+        <div class="finding-item reveal"><strong style="color:rgba(232,229,224,0.7)">3/3 users</strong> got confused when trying to add a chore.</div>
+        <div class="finding-item reveal" style="transition-delay:0.07s">Overview section on the home screen was confusing.</div>
+        <div class="finding-item reveal" style="transition-delay:0.14s"><strong style="color:rgba(232,229,224,0.7)">2/3 users</strong> wanted to see a full money breakdown.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="cs-section" style="padding-top:0">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px">
+    <img src="Earnest Case Study/earnest-user-testing-1.png" alt="Earnest — User Testing 1" style="width:100%;height:auto;display:block">
+    <img src="Earnest Case Study/earnest-user-testing-2.png" alt="Earnest — User Testing 2" style="width:100%;height:auto;display:block">
+  </div>
+</section>
+
+<section class="cs-section cs-section-alt">
+  <div class="section-eyebrow reveal-fast">After User Testing</div>
+  <div class="before-after-grid">
+    <div class="ba-col reveal"><span class="ba-label">What we changed</span><p class="ba-text">Made it clear where to "Add a Chore" — moved from chore settings into the task list, where users naturally looked first.</p></div>
+    <div class="ba-col reveal" style="transition-delay:0.1s"><span class="ba-label">Secondary fix</span><p class="ba-text">Primary and secondary button hierarchy was confusing during onboarding. Redesigned the button system for clearer visual priority throughout the app.</p></div>
+  </div>
+</section>
+
+<section class="cs-section">
+  <div class="section-eyebrow reveal-fast">Interactive Prototype</div>
+  <div class="prototype-embed reveal">
+    <iframe src="https://embed.figma.com/proto/ExeLVesGlUjRkLdYLkBQay/Behance-Prototypes?page-id=1%3A2&node-id=55-698&viewport=341%2C282%2C0.25&scaling=scale-down&content-scaling=fixed&embed-host=share&bg-color=0a0a0b" allowfullscreen></iframe>
+  </div>
+</section>
+
+<section class="cs-section cs-section-alt">
+  <div class="section-eyebrow reveal-fast">Branding &amp; Visual Design</div>
+  <div class="branding-grid">
+    <div class="branding-col reveal">
+      <span class="branding-col-label">Typography</span>
+      <div class="type-sample-lg">IBM Plex Sans</div>
+      <div class="type-sample-sm">A clean, humanist sans-serif chosen for its readability at small sizes and warm, approachable character — fitting for a family-focused fintech product.</div>
+    </div>
+    <div class="branding-col reveal" style="transition-delay:0.1s">
+      <span class="branding-col-label">Color Palette</span>
+      <div class="color-swatches">
+        <div class="swatch"><div class="swatch-block" style="background:#0B3D91"></div><div class="swatch-hex">#0B3D91</div></div>
+        <div class="swatch"><div class="swatch-block" style="background:#2A9D4E"></div><div class="swatch-hex">#2A9D4E</div></div>
+        <div class="swatch"><div class="swatch-block" style="background:#FFFFFF;border:1px solid rgba(255,255,255,0.1)"></div><div class="swatch-hex">#FFFFFF</div></div>
+        <div class="swatch"><div class="swatch-block" style="background:#1C1C1E"></div><div class="swatch-hex">#1C1C1E</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<a href="haven.html" class="next-project">
+  <div>
+    <div class="next-label">Next Project</div>
+    <div class="next-title">Haven</div>
+  </div>
+  <span class="next-arrow">→</span>
+</a>
+
+<footer>
+  <a href="mailto:loudon@loudonnokes.com">loudon@loudonnokes.com</a>
+  <a href="index.html" style="display:flex;align-items:center;opacity:0.6;transition:opacity 0.15s" aria-label="Loudon Nokes">
+    <svg height="26" width="auto" viewBox="0 0 133 216" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M40 27.4277V121.629H45.9307V85.2197H132.139V215.439L92.1377 188.011V93.8105H85.9307V130.22H0V0L40 27.4277Z" fill="#F7014C"/>
+    </svg>
+  </a>
+  <span class="footer-copy">©2025 Loudon Nokes</span>
+</footer>
+
+<script>
+const reveals = document.querySelectorAll('.reveal, .reveal-fast');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('revealed');
+      observer.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.05 });
+reveals.forEach(el => observer.observe(el));
+window.addEventListener('load', () => {
+  ['rl-hero-label','rl-title','rl-tagline','rl-meta','rl-ov0','rl-ov1','rl-ov2','rl-ov3'].forEach((id, i) => {
+    setTimeout(() => {
+      const el = document.getElementById(id);
+      if (el) el.classList.add('revealed');
+    }, 150 + i * 120);
+  });
+});
+</script>
+</body>
+</html>
