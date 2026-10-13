@@ -64,14 +64,31 @@ let RENDER_SCALE = (() => {
 
 /* One Image per plate URL, shared across scenes. A plate that arrives late
    flips the dirty flag so the next frame redraws instead of the player staring
-   at a colour band. */
+   at a colour band.
+
+   WEBP FIRST, PNG IF THAT FAILS. The fifteen plates are 7.5MB as PNG and
+   2.5MB as WebP at q0.95 -- two thirds of everything this game downloads,
+   gone. They are RGBA and the alpha is what the whole parallax depends on, so
+   JPEG was never an option; WebP keeps it, and measured against the original
+   the difference over every visible pixel of the worst plate is 1% of a level
+   on average, concentrated on the hard edges of the paper cuts, where a
+   side-by-side at 1:1 of the railings and the bare trees is indistinguishable.
+
+   The .png is kept beside every .webp and loaded if the WebP errors, which
+   covers a browser too old for it and, more usefully, a copy of this build
+   where only the PNGs were handed over. The fallback costs one failed request
+   and only on a browser that was going to show nothing at all. */
 const _plateImg = new Map();
 function plateImage(url) {
   let rec = _plateImg.get(url);
   if (!rec) {
     rec = { img: new Image(), ok: false };
     rec.img.onload = () => { rec.ok = true; _platesDirty = true; };
-    rec.img.onerror = () => { rec.ok = false; };
+    rec.img.onerror = () => {
+      const png = url.replace(/\.webp$/, '.png');
+      if (png !== url && rec.img.src.indexOf('.webp') >= 0) { rec.img.src = png; return; }
+      rec.ok = false;
+    };
     rec.img.src = url;
     _plateImg.set(url, rec);
   }
@@ -145,7 +162,7 @@ function buildScene(id) {
   stage.querySelector('.actorlyr').style.zIndex = actorZ;
 
   /* Start the plate loads now. Each one flips the dirty flag when it lands. */
-  for (const l of live) plateImage(`${sc.art}${l.id}.png`);
+  for (const l of live) plateImage(`${sc.art}${l.id}.webp`);
   _platesDirty = true;
 
   /* The threat is built here rather than living in index.html, because it has
@@ -182,7 +199,7 @@ function prefetchNeighbours(id) {
       _prefetched.add(ex.to);
       for (const l of LAYERS_V2) {
         if (dest[l.id] === false) continue;
-        new Image().src = `${dest.art}${l.id}.png`;
+        new Image().src = `${dest.art}${l.id}.webp`;
       }
     }
   };
@@ -258,7 +275,7 @@ function drawPlates() {
     ctx.clearRect(0, 0, View.vw, View.vh);
 
     const x = -camX * (spec.depth / 68);
-    const rec = plateImage(`${sc.art}${id}.png`);
+    const rec = plateImage(`${sc.art}${id}.webp`);
 
     /* The fallback band, drawn underneath, so a scene whose art has not been
        made yet still reads as depth and is still walkable — same contract the
@@ -563,7 +580,7 @@ function clearColumns(sceneId, lay) {
   if (_clearCols.has(key)) return _clearCols.get(key);
 
   const sc  = SCENES[sceneId];
-  const rec = plateImage(`${sc.art}${lay}.png`);
+  const rec = plateImage(`${sc.art}${lay}.webp`);
   if (!rec.ok || !rec.img.naturalWidth) return null;   // not loaded yet; retry later
   const spec = LAYERS_V2.find(l => l.id === lay);
   if (!spec) return null;
