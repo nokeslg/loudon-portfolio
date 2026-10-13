@@ -1,0 +1,96 @@
+/* ============================================================================
+   H — THE LIVING VALLEY
+
+   Everything here lives INSIDE a .lyr, so it inherits that layer's parallax
+   transform and is occluded by every plane in front of it. That is the whole
+   reason this works without new art: a shape in the far layer goes behind the
+   trees in the mid layer for free.
+
+   NO `will-change` ANYWHERE. A scene layer is 2204x1102 at this zoom, and
+   promoting these to permanent compositor textures is exactly what caused the
+   flashing-green-box bug — see the long comment on .lyr in v2.css. Animating
+   transform and opacity composites fine without the hint.
+   ========================================================================== */
+
+#stage .bird{
+  position:absolute;
+  pointer-events:none;
+  display:block;
+}
+
+/* ---------- the day wash ---------------------------------------------------
+   Set per layer in JS, weighted by distance. Transitions over a long beat so
+   that waking up on day two is a colour you notice rather than a cut. */
+/* One viewport-sized element under the glow and the darkness. No transition:
+   transitioning a gradient repaints the whole area every frame, which is the
+   flickering-green-box bug, and the day changes at a boundary that already has
+   a cut in it. */
+#daywash{
+  position:fixed;inset:0;z-index:3;pointer-events:none;
+}
+
+/* ---------- mist -----------------------------------------------------------
+   Three overlapping ellipses rather than a flat band: a straight gradient strip
+   reads as a bar across the art, and the thing that sells fog is that its
+   density is uneven. 200% wide so it can drift a full screen without the seam
+   arriving. */
+/* Fixed to the viewport, not parented into a layer. In a layer this was 200%
+   of a 2204px plate — a 4400px-wide permanently promoted compositor texture,
+   twice over. At this distance mist barely parallaxes anyway, so the only thing
+   lost is a few pixels of drift nobody can see, and the texture goes from
+   4400px wide to one screen. */
+#mistbed i{
+  position:fixed;
+  left:0;
+  width:200vw;
+  background:
+    radial-gradient(ellipse 22% 130% at 12% 50%, rgba(150,178,172,.55) 0%, rgba(150,178,172,0) 70%),
+    radial-gradient(ellipse 30% 120% at 38% 55%, rgba(150,178,172,.42) 0%, rgba(150,178,172,0) 72%),
+    radial-gradient(ellipse 18% 140% at 66% 45%, rgba(150,178,172,.5)  0%, rgba(150,178,172,0) 68%),
+    radial-gradient(ellipse 26% 125% at 88% 52%, rgba(150,178,172,.38) 0%, rgba(150,178,172,0) 74%);
+  animation:drift linear infinite;
+}
+@keyframes drift{
+  from{ transform:translateX(0) }
+  to  { transform:translateX(-50%) }
+}
+
+/* ---------- the roost ------------------------------------------------------
+   A bird at this distance is three or four pixels. It does not need to be a
+   bird, it needs to be a MARK that moves like one — a shallow chevron is the
+   whole vocabulary, and it is what every silhouette game uses at this scale. */
+#stage .bird{
+  /* 12x7, not 7x4. A distant bird really is three pixels, and three pixels is
+     invisible — the player has to NOTICE the roost empty, which is the entire
+     point of it. Realism loses to legibility here. */
+  width:12px;height:7px;margin-left:-6px;
+  background:#0A2325;
+  clip-path:polygon(0 100%, 50% 0, 100% 100%, 50% 45%);
+  transform-origin:50% 100%;
+  /* NO IDLE ANIMATION. Nine birds each running an infinite keyframe is nine
+     permanent compositor layers, and the payoff was a 1.5px wobble nobody could
+     see. They are still until they leave, and leaving is the only moment that
+     ever mattered. */
+}
+
+/* Going up. Rises, drifts sideways, fades — and the wingbeat gets faster as it
+   goes, which is the bit that makes it read as alarm rather than as a leaf. */
+#stage .bird.up{
+  animation:flee 4s cubic-bezier(.25,.5,.4,1) forwards;
+}
+@keyframes flee{
+  0%  { transform:translate(0,0) scale(1); opacity:1 }
+  18% { transform:translate(calc(var(--drift,40px) * .18), -14px) scale(1.05); opacity:1 }
+  100%{ transform:translate(var(--drift,40px), -34vh) scale(.6); opacity:0 }
+}
+
+@media (prefers-reduced-motion:reduce){
+  #stage .mist{animation:none}
+  #stage .bird.up{animation:fade 1.2s linear forwards}
+  @keyframes fade{ to{opacity:0} }
+  #stage .daywash{transition:none}
+}
+
+/* Under the darkness overlay (6) and over the stage, so mist is still lost to
+   the night the way everything else is. */
+#mistbed{position:fixed;inset:0;z-index:4;pointer-events:none;overflow:hidden}

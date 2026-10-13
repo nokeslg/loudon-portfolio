@@ -1,0 +1,264 @@
+/* ============================================================================
+   BENIGHTED — THE BOOK AS A PICTURE
+
+   Two of the ten directions, built for real: ?book=ring and ?book=string.
+
+   The argument for either, from notebook-directions.html: the prose book
+   states every fact correctly and still makes you assemble the conclusion. The
+   conclusion is a SHAPE — a closed loop of five in which each vouches for the
+   next, with exactly one link cut — and a shape is the one thing prose is
+   worst at. Neither of these adds information. Both show the same five facts
+   with fewer words.
+
+   RING is legible: a drawn circle, arrows, the break as a gap. Reads in one
+   look, and looks like a diagram nobody in 1830 would have drawn.
+   STRING is the same graph pinned to a board with thread between the pins and
+   one thread cut. Worse at precision, far better at atmosphere.
+   ========================================================================== */
+
+#book[hidden]{display:none}
+#book{
+  position:fixed;inset:0;z-index:12;
+  display:flex;align-items:center;justify-content:center;
+  padding:clamp(14px,3vh,34px) 16px;
+  background:rgba(4,14,15,.9);
+  overflow-y:auto;
+}
+
+#book .sheet{
+  width:min(1180px,100%);max-height:100%;
+  display:flex;flex-direction:column;min-height:0;
+  padding:clamp(18px,2.4vw,28px) clamp(20px,2.8vw,34px) clamp(13px,1.6vw,18px);
+}
+/* RING sits on the night, because a drawn diagram on paper looks like a
+   printed form. STRING sits on board, because that is what it is. */
+#book.ring .sheet{ background:#081C1D;border:1px solid #23413F;
+  box-shadow:0 30px 90px rgba(0,0,0,.72) }
+#book.string .sheet{
+  background:#2A2620 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='6' height='6'%3E%3Cpath d='M0 6 6 0' stroke='%23000' stroke-opacity='.06'/%3E%3C/svg%3E");
+  border:1px solid #171410;box-shadow:0 30px 90px rgba(0,0,0,.75);
+}
+
+#book h2{
+  flex:none;margin:0 0 4px;
+  font-family:"masonic-lodge",Georgia,serif;font-weight:400;
+  font-size:clamp(17px,2.1vw,22px);letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ember);
+}
+#book.string h2{color:#E6DCC4}
+#book .lede{
+  flex:none;margin:0 0 clamp(10px,1.5vw,16px);
+  font-family:"alverata-irregular",Georgia,serif;font-size:13.5px;color:#6E8884;
+}
+#book.string .lede{color:#9A8F79}
+
+/* overflow:AUTO, not hidden. Hidden is what put half the ring off the screen
+   with no way to reach it: the graph is a fixed 560x470 box, so the moment the
+   window could not give it that, the rest was simply cut off. The scaling
+   below should mean this never fires — but "should" is exactly the word that
+   produced the bug, and an unreachable notebook is unrecoverable mid-run. */
+#book .body{display:grid;grid-template-columns:1fr 400px;gap:clamp(16px,2.4vw,30px);
+  min-height:0;overflow:auto}
+@media(max-width:880px){#book .body{grid-template-columns:1fr}}
+
+/* ---------- the graph ---------- */
+/* FIXED INSIDE, SCALED OUTSIDE.
+
+   The faces are absolutely positioned at the same coordinates the SVG draws
+   its threads at, so a viewBox unit has to equal a pixel for both of them or
+   they drift apart — arrows pointing at empty space with the faces stacked up
+   the left, which is how the first version rendered. So the box stays 560x470
+   and the whole thing is SCALED as one object: discs, threads, arrowheads and
+   type all by the same factor, nothing drifting against anything.
+
+   A media query cannot do this. transform does not change layout, so the box
+   still claimed 560 of width and still overflowed; and it keyed on the
+   VIEWPORT when the thing that runs out is the column, which also holds a
+   310px panel. The factor is measured in v2-book.js and the wrapper is given
+   the scaled height, so the flow below it sits where it should. */
+#book .graphwrap{position:relative;min-width:0;overflow:visible}
+/* SIZED FROM --vbw/--vbh, WHICH v2-book.js SETS FROM VB.
+
+   These were hardcoded 560x470 while VB in the script said 640x480, and the
+   result is the exact bug the fixed box exists to prevent: the SVG scaled its
+   640 viewBox down into a 560 element (0.875) while the faces, positioned in
+   raw pixels, did not — so every thread fell short of the face it was meant to
+   reach by about eighty pixels. One source of truth, and it is the script,
+   because that is where the geometry is computed. */
+#book .graph{
+  position:relative;width:var(--vbw,640px);height:var(--vbh,480px);
+  transform-origin:top left;transform:scale(var(--g,1));
+}
+#book .graph svg{display:block;width:var(--vbw,640px);height:var(--vbh,480px);overflow:visible}
+
+/* Links. Drawn under the faces, so a face is never cut by its own thread. */
+#book .link{fill:none;stroke-linecap:round}
+#book.ring   .link{stroke:#2E5250;stroke-width:2}
+#book.string .link{stroke:#C9BCA2;stroke-width:2.5}
+/* KNOWN: you have the memory, from their mouth or off the ground. */
+#book .link.known{stroke:var(--ember);opacity:.95}
+/* CUT: they would not talk about them, or they are gone. This is the only
+   thing on the page that matters, so it is the only thing that is red. */
+#book .link.cut{stroke:#E13535;stroke-dasharray:7 9;opacity:.92}
+#book.string .link.cut{stroke:#E13535;stroke-dasharray:none}
+#book .arrow{fill:#2E5250}
+#book .arrow.known{fill:var(--ember)}
+
+/* The frayed ends of a cut thread, string layout only. */
+#book .fray{stroke:#E13535;stroke-width:2.5;stroke-linecap:round;opacity:.9}
+
+/* ---------- a face ---------- */
+/* A <button>, so it is tabbable and announced — which means every UA default
+   has to go, or each face renders as a white rounded box with a border. */
+#book .node{
+  position:absolute;width:112px;margin:-56px 0 0 -56px;
+  background:none;border:0;padding:0;cursor:pointer;
+  font:inherit;color:inherit;text-align:center;
+}
+#book .disc{
+  /* display:block, and it is not decoration. It is a <span>, so inline by
+     default — and an inline box ignores width and height. The disc rendered as
+     a 1px vertical sliver, the face inside it was clipped to nothing, and the
+     page looked like five labels with arrows between them. */
+  display:block;
+  position:relative;width:112px;height:112px;border-radius:50%;
+  overflow:hidden;background:#061617;
+  border:1px solid #2E5250;
+  transition:border-color .15s ease,box-shadow .15s ease,transform .15s ease;
+}
+#book.string .disc{background:#1A1712;border-color:#6E6350}
+#book .disc img{
+  position:absolute;left:50%;top:14%;width:86%;
+  transform:translateX(-50%);display:block;
+}
+/* THE NAME GOES WHERE NOTHING CROSSES IT.
+
+   Below the disc for the three that were never in anybody's way; outboard, on
+   the flank, for the two that were. "The widow's name gets cutoff and the
+   boy's name is quite close to the line" — both sit on the sides of the ring,
+   which is exactly where a chord leaves the rim at name height. Outside the
+   ring, no chord can reach them. */
+#book .node .nm{
+  display:block;
+  font-family:"masonic-lodge",Georgia,serif;font-weight:400;
+  font-size:11px;letter-spacing:.11em;text-transform:uppercase;color:#8FA8A4;
+  white-space:nowrap;transition:color .15s ease;
+}
+#book .node.lab-down .nm{margin-top:16px;text-align:center}
+#book .node.lab-left .nm,
+#book .node.lab-right .nm{position:absolute;top:50%;transform:translateY(-50%)}
+#book .node.lab-left  .nm{right:calc(100% + 12px);text-align:right}
+#book .node.lab-right .nm{left:calc(100% + 12px);text-align:left}
+#book.string .node .nm{color:#C9BCA2}
+
+#book .node:hover .disc,#book .node.on .disc{
+  border-color:var(--ember);
+  box-shadow:0 0 0 3px rgba(217,160,91,.18),0 0 26px 6px rgba(217,160,91,.22);
+  transform:translateY(-2px);
+}
+#book .node:focus-visible .disc{outline:2px solid var(--ember);outline-offset:3px}
+
+/* NOT MET YET. Loudon: "the faces and names should be greyed out or something
+   until you meet them." Greyed rather than hidden, so the silhouette still
+   tells you which mask is which and the ring still reads as five people —
+   and so that lighting up as you meet them is itself the progress bar. The
+   hover treatment is untouched: an unlit face still answers to the pointer. */
+#book .node.unmet .disc{filter:grayscale(1) brightness(.5);border-color:#1F3A39}
+#book .node.unmet .nm{color:#4A6360}
+#book.string .node.unmet .disc{border-color:#4A4236}
+#book.string .node.unmet .nm{color:#6E6758}
+#book .node.unmet:hover .disc,#book .node.unmet.on .disc{
+  filter:grayscale(.25) brightness(.92);
+}
+
+/* State, as a ring round the disc rather than a word under it. */
+#book .node.clear  .disc{border-color:#4E8C72}
+#book .node.dodged .disc{border-color:#E13535}
+#book .node.ready  .disc{border-color:var(--ember)}
+#book .node.gone   .disc{opacity:.34;filter:grayscale(1)}
+#book .node.gone   .nm{opacity:.5;text-decoration:line-through}
+
+/* A part in the hand, once you know about it. A small ember tag on the disc. */
+/* On the disc, not under the name: 112 tall disc, so 96 sits across its foot. */
+#book .node .has{
+  position:absolute;left:50%;top:96px;transform:translateX(-50%);
+  background:var(--ember);color:#072F30;
+  font-family:"masonic-lodge",Georgia,serif;font-size:9.5px;letter-spacing:.1em;
+  text-transform:uppercase;padding:2px 7px;border-radius:2px;white-space:nowrap;
+}
+
+/* The pin that holds a face to the board. */
+#book.string .node::after{
+  content:'';position:absolute;left:50%;top:-7px;transform:translateX(-50%);
+  width:11px;height:11px;border-radius:50%;
+  background:#D9A05B;box-shadow:0 1px 3px rgba(0,0,0,.6);
+}
+
+/* ---------- the panel beside it ---------- */
+#book .read{
+  min-width:0;overflow-y:auto;padding-right:2px;
+  font-family:"alverata-irregular",Georgia,serif;
+}
+#book .read h3{
+  margin:0 0 2px;font-family:"masonic-lodge",Georgia,serif;font-weight:400;
+  font-size:15px;letter-spacing:.14em;text-transform:uppercase;color:var(--ember);
+}
+#book.string .read h3{color:#E6DCC4}
+#book .read .st{
+  font-size:12px;letter-spacing:.04em;color:#6E8884;margin:0 0 12px;
+}
+#book .read p{font-size:14.5px;line-height:1.55;color:var(--ink);margin:0 0 .65em}
+#book.string .read p{color:#E6DCC4}
+#book .read .quote{
+  border-left:2px solid var(--ember);padding-left:12px;color:#C7B394;font-style:italic;
+}
+#book .read .warn{color:#E89090}
+#book .read .hint{color:#5D7A77;font-size:13px}
+#book.string .read .hint{color:#9A8F79}
+#book .read .empty{color:#5D7A77;font-size:14px;font-style:italic}
+
+/* ---------- the parts, and the foot ---------- */
+/* ---------- the three slots, in the hole in the middle of the ring ----------
+   Measured off his Notebook Example.svg: 61.08 x 62.05 boxes, 4.61 radius,
+   2.3 border, 16.14 between them, centred on the ring. Inside .graph, so they
+   scale with everything else and stay centred at any window size. */
+#book .parts{
+  /* THE CENTROID OF THE FIVE FACES, which is where the eye puts the middle.
+
+     Three candidates, and only one of them looks centred:
+       240  the middle of the 640x480 box          — low
+       216  the middle of the discs' bounding box  — high, and this was it
+       231  the average of the five face centres   — right
+
+     A ring with one face at the top and two along the bottom carries more
+     weight below the middle than above it, so the bounding box lies: it splits
+     the extremes rather than the mass. The five y's are 70, 179, 363, 363 and
+     179, which average to 232 — the same point the ring is generated around,
+     which is the tell that it was the honest centre all along. */
+  position:absolute;left:320px;top:232px;transform:translate(-50%,-50%);
+  display:flex;gap:14.53px;z-index:1;pointer-events:none;
+}
+/* His 61.08 x 62.05 at nine tenths, with the radius, the border and the gap
+   taken down by the same factor so the box is his box, just smaller — rather
+   than his box with the proportions quietly redrawn. */
+#book .slot{
+  width:54.97px;height:55.85px;border-radius:4.15px;box-sizing:border-box;
+  display:flex;align-items:center;justify-content:center;
+  border:2.07px solid #23413F;background:none;color:#2A4A48;
+  transition:color .2s ease,background .2s ease,border-color .2s ease;
+}
+#book .slot.has{background:#D9A05B;border-color:#D9A05B;color:#072F30}
+#book .slot svg{width:30.6px;height:30.6px;display:block}
+#book.string .slot{border-color:#4A4236;color:#5A5243}
+#book.string .slot.has{background:#D9A05B;border-color:#D9A05B;color:#072F30}
+
+/* His frame has nothing along the bottom at all. The running total he cut is
+   gone; the TAB hint stays, because it is the only thing telling a first
+   player how to put the book down, and it was never the thing in the way. */
+#book .foot{
+  flex:none;display:flex;justify-content:flex-end;align-items:baseline;
+  margin-top:8px;
+  font-family:"alverata-irregular",Georgia,serif;font-size:12.5px;color:#4F6C69;
+}
+#book.string .foot{color:#8A7F6B}
+#book .foot b{font-family:var(--mono);font-size:11px;color:#8FA8A4}

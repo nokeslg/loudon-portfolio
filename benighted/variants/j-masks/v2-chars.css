@@ -1,0 +1,28 @@
+/* Drawn characters. The engine used to inline two SVGs; these are raster now,
+   so they need explicit fitting rules or they letterbox inside their box. */
+#actor img, #threat .tbody img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;      /* the box is already the art's own aspect */
+  image-rendering: auto;
+  pointer-events: none;
+}
+/* The rim that made the old flat silhouette readable against dark ground is
+   kept, but softened: the drawn figure already carries its own interior
+   values, so the old two-sided drop-shadow now reads as a sticker keyline. */
+#threat .tbody {
+  filter: drop-shadow(1px 0 0 rgba(150,180,175,.42));
+  /* NO HARD BOTTOM EDGE, EVER. revenant.png is opaque to its final row, so
+     wherever the figure meets the horizon it ends in a flat horizontal slice
+     — and on the far and mid planes there is a gap of open sky below the band
+     with no plate in front to hide it. paintThreat sinks the figure below the
+     line; this dissolves the last stretch of it on the way down, so the cut
+     itself is never drawn. Kept short: at far-plane size the whole fade is
+     only a few pixels, so it reads as the figure standing in the haze rather
+     than as a transparent ghost, which would fight the cut-paper style. */
+  -webkit-mask-image: linear-gradient(to bottom,
+            #000 0%, #000 84%, rgba(0,0,0,0) 100%);
+          mask-image: linear-gradient(to bottom,
+            #000 0%, #000 84%, rgba(0,0,0,0) 100%);
+}

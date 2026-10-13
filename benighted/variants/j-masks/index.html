@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Benighted</title>
+<link rel="stylesheet" href="v2.css">
+<link rel="stylesheet" href="v2-chars.css">
+<link rel="stylesheet" href="v2-end.css">
+<link rel="stylesheet" href="v2-notes.css">
+<link rel="stylesheet" href="v2-life.css">
+<link rel="stylesheet" href="v2-mask.css">
+  <link rel="stylesheet" href="v2-frame.css">
+  <link rel="stylesheet" href="v2-brief.css">
+  <link rel="stylesheet" href="v2-onboard.css">
+  <link rel="stylesheet" href="v2-start.css">
+  <link rel="stylesheet" href="v2-tutorial.css">
+  <link rel="stylesheet" href="v2-book.css">
+  <link rel="stylesheet" href="v2-day.css">
+  <!-- Masonic Lodge (display) + Alverata Irregular (text), from the project's
+       own Adobe Fonts web project. CSS embed, not the JS loader: the JS one
+       needs a referrer that a local file system does not send. -->
+  <link rel="stylesheet" href="https://use.typekit.net/lpg6kig.css">
+</head>
+<body>
+
+<!-- Which fork am I looking at. Six builds that look identical at a glance is
+     exactly how a playtest session turns into an argument about what you just
+     played. -->
+<!-- The title, not playtest chrome. This used to read "J · one of them is not
+     a person · ← all six", which was for telling six parallel variant builds
+     apart during testing and linked back to the variant picker. Variant J is
+     the game now, so the letter, the subtitle and the back-link are gone. -->
+<div id="brand">
+  <span class="t">Benighted</span>
+</div>
+
+<div id="stage"></div>
+
+<!-- The light. Canvases, not gradient divs: see the long note in
+     paintLight(). Two of them so #glowfx can keep its screen blend. -->
+<canvas id="glowfx"></canvas>
+<canvas id="darkfx"></canvas>
+<div id="prompt"></div>
+<div id="notes" hidden></div>
+<div id="book" hidden></div>
+
+<!-- Loudon's NewDay.svg, shown at the top of every day; see v2-day.js -->
+<div id="day" hidden aria-live="polite"></div>
+<div id="talk" hidden></div>
+<div id="intro" hidden></div>
+
+<!-- The premise and the keys; see v2-brief.js. Shown on load, reopened by ? -->
+<div id="brief" hidden role="dialog" aria-modal="true" aria-label="How to play"></div>
+
+<!-- The other four onboarding methods in the bake-off; see v2-onboard.js.
+     Only ever one of these is live, picked by ?onboard= -->
+<div id="ob" hidden role="dialog" aria-modal="true" aria-label="How to play"></div>
+<div id="ledger" hidden role="dialog" aria-modal="true" aria-label="Your notebook"></div>
+
+<!-- The chosen flow: the story on black, then the rules over the valley. -->
+<!-- Loudon's title screen, rebuilt from UI/My UI/StartingScreen.svg -->
+<div id="start" hidden></div>
+
+<div id="pro" hidden role="dialog" aria-modal="true" aria-label="Prologue"></div>
+<div id="panel" hidden role="dialog" aria-modal="true" aria-label="How to play"></div>
+
+<!-- Loudon's three tutorial frames; see v2-tutorial.js -->
+<div id="tut" hidden role="dialog" aria-modal="true" aria-label="How to play"></div>
+
+<div id="line"></div>
+
+<!-- THE KEY LEGEND IS GONE.
+
+     It used to read "← → walk · E look · TAB what you know · ` numbers", which
+     was the whole of the game's instruction back when there wasn't any. The
+     three tutorial frames teach all four properly now, and ? reopens them at
+     any time, so the strip was saying the same things again permanently and
+     worse — and one of them, the backtick, was a debug toggle nobody playing
+     should have been told about.
+
+     The four buttons stay. They are controls, not instruction. -->
+<div id="hud">
+  <button id="help" aria-label="How to play">?</button>
+  <button id="mute">mute</button>
+  <button id="fs">fullscreen</button>
+  <button id="restart">restart</button>
+</div>
+
+<div id="debug"></div>
+<div id="end" role="status" aria-live="polite"></div>
+
+<script src="v2-data.js"></script>
+<script src="v2-talk.js"></script>
+<script src="v2-life.js"></script>
+<script src="v2-mask.js"></script>
+<script src="v2-intro.js"></script>
+<script src="v2-scene.js"></script>
+<script src="v2-game.js"></script>
+<script src="v2-audio.js"></script>
+<script src="v2-book.js"></script>
+<script src="v2-day.js"></script>
+<script src="v2-tutorial.js"></script>
+<script src="v2-start.js"></script>
+<script src="v2-onboard.js"></script>
+<script src="v2-brief.js"></script>
+<!-- dormant unless the URL carries ?cap= ; see v2-cap.js -->
+<script src="v2-cap.js"></script>
+<script>
+  setInterval(() => {
+    if (!window.S) return;
+    document.getElementById('debug').textContent =
+      `day ${S.day}  daylight ${S.daylight.toFixed(1)}  x ${S.x | 0}  ` +
+      `scene ${S.at}  parts ${S.parts.length}/3  threat ${S.threat} ` +
+      `(${THREAT.SIGHT[S.threat] || 'offstage'})` + (window.debugExtra ? '  ' + debugExtra() : '');
+  }, 120);
+</script>
+</body>
+</html>

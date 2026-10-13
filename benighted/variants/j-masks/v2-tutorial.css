@@ -1,0 +1,143 @@
+/* ============================================================================
+   BENIGHTED — THE TUTORIAL, as Loudon drew it
+
+   UI/My UI/Tutorial/Frame 56, 55, 57 — in his order, which his own dots
+   already agreed with: 56 lights the first dot, 55 the second, 57 the third.
+
+   AUTHORED AT 1052x443 AND SCALED, like the dialogue sheet. Everything below
+   is in his frame's own pixels — x=40 is x=40 — and v2-tutorial.js works out
+   one scale factor for the window. That means the layout cannot drift from the
+   file as windows change, and when he moves something in Figma the number here
+   is the number there.
+
+   WHAT IS LIVE RATHER THAN DRAWN. The type is set in the real faces, so it
+   reflows instead of being a picture of itself; the four grey boxes on slide
+   one are the actual daylight frames out of this build; and the buttons are
+   buttons. Colours are his to the digit: #081C1D ground, #D9A05B display,
+   #86B1A7 keys, #18413F chip strokes, #072F30 on the ember button.
+   ========================================================================== */
+
+#tut[hidden]{display:none}
+#tut{
+  position:fixed;inset:0;z-index:15;
+  display:flex;align-items:center;justify-content:center;
+  /* Lighter than the prologue's black: the valley behind this is the subject
+     of half the sentences on it. */
+  background:rgba(4,14,15,.74);
+  cursor:default;
+}
+
+#tut .sheet{
+  position:relative;
+  width:1052px;height:443px;flex:none;
+  background:#081C1D;
+  box-shadow:0 30px 90px rgba(0,0,0,.72);
+  transform:scale(var(--s,1));
+  transform-origin:center center;
+  font-kerning:normal;
+}
+
+/* ---------- things on every slide ---------- */
+#tut h2{
+  position:absolute;left:40px;top:44px;margin:0;
+  font-family:"masonic-lodge",Georgia,serif;font-weight:400;
+  font-size:48px;line-height:48px;color:#D9A05B;
+  white-space:nowrap;
+}
+
+#tut .dots{position:absolute;left:40px;top:399px;display:flex;gap:4px}
+#tut .dots i{width:8px;height:8px;border-radius:50%;background:#D9D9D9}
+#tut .dots i.on{background:#D9A05B}
+
+/* ANCHORED RIGHT AND BOTTOM, NOT LEFT.
+
+   His pair is Back at x=870 and Next at x=945, both 67 wide and 36 tall at
+   y=385 — so the right edge is 1012, which is 40 from the frame edge and
+   matches his 40 left margin exactly, the bottom is 421 (22 up from 443), and
+   the gap between the two is 8.
+
+   Those four numbers are the composition. The 67 is not: it is just how wide
+   "Next" needs to be. So the row is pinned to the right edge and lets the
+   buttons size to their labels, which means "Begin" on the last slide grows
+   LEFTWARD and takes Back with it. Pin the left edge instead and a longer
+   label pushes the pair off the 40 margin, which is the one thing that must
+   not move.
+
+   min-width keeps the first two slides at his exact 67, so nothing shifts on
+   the frames where the label is still "Next". */
+#tut .btns{
+  position:absolute;right:40px;top:385px;height:36px;
+  display:flex;align-items:stretch;gap:8px;
+}
+#tut button{
+  /* 8, not his 9. "Next" sets at 48px in the browser, so 9+48+9+2 is 68 and
+     his button is 67 — the min-width never binds and every button comes out a
+     pixel wide. At 8 the padding is slack on the short labels, min-width wins,
+     and slides one and two are his 67 to the pixel; "Begin" needs 73 and gets
+     it. The padding only ever applies to a label too wide for the minimum. */
+  min-width:67px;height:36px;padding:0 8px;
+  border-radius:2px;border:1px solid rgba(217,160,91,.25);
+  font-family:"masonic-lodge",Georgia,serif;font-weight:400;
+  font-size:16px;line-height:34px;cursor:pointer;
+  text-align:center;white-space:nowrap;
+}
+#tut .back{background:#fff;color:#072F30}
+#tut .next{background:#D9A05B;color:#072F30}
+#tut .back[disabled]{background:none;color:#777;cursor:default}
+#tut button:not([disabled]):hover{filter:brightness(1.08)}
+#tut button:focus-visible{outline:1px solid #D9A05B;outline-offset:3px}
+
+/* ---------- body copy ----------
+   21px Alverata on 25px leading, which is his: the baselines in all three
+   files step 130.291, 155.291, 180.291, 205.291. Blocks are positioned by
+   their FIRST BASELINE minus the font's ascent, so a block that grows a line
+   grows downward from where he put it rather than recentring itself. */
+#tut .slide{position:absolute;inset:0;display:none}
+#tut .slide.on{display:block}
+
+#tut p,#tut .row{
+  position:absolute;margin:0;
+  font-family:"alverata-irregular",Georgia,serif;
+  font-size:21px;line-height:25px;color:#fff;
+}
+#tut p.thin{font-weight:300}
+#tut b{font-weight:700;color:inherit}
+#tut .ember{color:#D9A05B;font-weight:600}
+
+/* ---------- slide 1: the ladder ----------
+   His four 234x129 placeholders at x 40 / 286 / 532 / 778, y 234, each with a
+   #072F30 label chip across its top-left corner. The chips are his widths —
+   98, 116, 70, 117 — because they are cut to the word, not to a grid. */
+#tut .ladder{position:absolute;left:40px;top:234px}
+#tut .ladder figure{
+  position:absolute;top:0;width:234px;height:129px;margin:0;
+  background:#D9D9D9;overflow:hidden;
+}
+#tut .ladder figure:nth-child(1){left:0}
+#tut .ladder figure:nth-child(2){left:246px}
+#tut .ladder figure:nth-child(3){left:492px}
+#tut .ladder figure:nth-child(4){left:738px}
+#tut .ladder img{display:block;width:100%;height:100%;object-fit:cover}
+#tut .ladder figcaption{
+  position:absolute;left:0;top:0;height:39px;
+  display:flex;align-items:center;padding:0 16px;
+  background:#072F30;
+  font-family:"masonic-lodge",Georgia,serif;font-weight:400;
+  font-size:12px;line-height:1;color:#D9A05B;white-space:nowrap;
+}
+
+/* ---------- slide 3: the keys ----------
+   51x34 chips with a 9.5 radius and a #18413F hairline, at x 40.5 and y
+   110.5 / 181.5 / 252.5 / 323.5; descriptions start at x 113. */
+#tut .key{
+  position:absolute;left:40px;width:51px;height:34px;
+  border:1px solid #18413F;border-radius:9.5px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:"alverata-irregular",Georgia,serif;
+  font-size:21px;line-height:1;color:#86B1A7;
+}
+#tut .key.k1{top:110px;font-weight:600}
+#tut .key.k2{top:181px;font-weight:500}
+#tut .key.k3{top:252px;font-weight:500}
+#tut .key.k4{top:323px}
+#tut .key .pip{width:8px;height:8px;border-radius:50%;background:#D9A05B}

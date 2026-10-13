@@ -1,0 +1,489 @@
+/* ============================================================================
+   THE DESIGN FRAME
+
+   Everything in the conversation and the character intro is authored in a
+   1920x1080 Figma frame, and both are mapped onto the window through the SAME
+   transform. That is the whole trick behind the intro handing off to the
+   dialogue without a jump: the animation leaves the portrait at (260,393) in
+   frame coordinates and the dialogue sheet puts it at (260,393) in frame
+   coordinates, so they land on the same pixels at every window size without a
+   single magic number.
+
+   The transform is "cover": scale by whichever axis needs more, centre the
+   overflow. Identical to the SVG's own preserveAspectRatio="xMidYMid slice",
+   which is what the intro uses.
+
+   Anything inside .frame is positioned in frame pixels. Do not use vw/vh in
+   here — that would break the correspondence.
+   ========================================================================== */
+
+.frame{
+  position:fixed;left:0;top:0;
+  width:1920px;height:1080px;
+  transform-origin:0 0;        /* the scale+offset is set from JS, per resize */
+  pointer-events:none;
+}
+
+/* ---------- the conversation, exactly as designed ---------- */
+#talk{
+  position:fixed;inset:0;z-index:12;
+  background:#071414;
+}
+#talk[hidden]{display:none}
+
+/* The ember disc. Drawn behind the portrait, and the portrait is masked to the
+   same circle, so the head reads as cut out of the light rather than pasted
+   over it. */
+#talk .disc{
+  position:absolute;
+  left:270px;top:218px;width:616px;height:616px;   /* circle (578,526) r308 */
+  border-radius:50%;
+  background:#D9A05B;
+}
+/* TWO COPIES OF THE SAME HEAD, CROSS-FADED.
+
+   The intro leaves the portrait as a full rectangle on bare ground; the
+   dialogue wants it cut to the circle and sitting on the ember disc. Swapping
+   in one step clips the corners off and pops the disc in, both visible.
+
+   So the sheet opens in EXACTLY the frame the intro ended on — uncut head, no
+   disc — and then settles: the uncut copy fades out, the masked copy fades in
+   underneath it, and the disc comes up behind. Nothing is clipped during the
+   intro and nothing jumps at the cut; the corners simply dissolve. */
+#talk .face{
+  position:absolute;
+  left:260px;top:393px;width:626px;height:444px;
+}
+#talk .face.clipped{
+  /* the circle, relative to this box: centre (318,133) r308 */
+  -webkit-mask-image:radial-gradient(circle 308px at 318px 133px,#000 99.5%,transparent 100%);
+          mask-image:radial-gradient(circle 308px at 318px 133px,#000 99.5%,transparent 100%);
+}
+#talk .face.full{ opacity:0 }
+
+/* The opening frame of a settle: what the intro's last frame looks like. */
+#talk.settle .face.full{ opacity:1 }
+#talk.settle .face.clipped{ opacity:0 }
+#talk.settle .disc{ opacity:0 }
+
+/* …and the ease into the designed state. Driven by removing .settle. */
+#talk .face.full,
+#talk .face.clipped,
+#talk .disc{ transition:opacity 420ms ease }
+
+@media (prefers-reduced-motion:reduce){
+  #talk .face.full,#talk .face.clipped,#talk .disc{transition:none}
+}
+#talk .face img{
+  display:block;width:100%;height:100%;
+  object-fit:fill;              /* the Figma rect is preserveAspectRatio="none" */
+}
+
+#talk .who{
+  position:absolute;left:1035px;top:0;width:820px;
+  font-family:"masonic-lodge",serif;font-weight:400;
+  font-size:48px;line-height:1;color:#D9A05B;
+  /* Figma gives a BASELINE of 325.38; CSS positions by the top of the line
+     box, so the offset below is baseline minus the face's ascent. */
+  transform:translateY(289px);
+}
+
+/* THE RIGHT-HAND COLUMN FLOWS. It used to be three absolutely positioned
+   blocks at the y values Figma exported — and those are only correct for a
+   body of exactly four lines. The masks answer is five, so it ran straight
+   through the choices underneath; and a choice long enough to wrap overlapped
+   the one below it.
+
+   Flowed, the designed spacing still falls out exactly where it was drawn
+   whenever the body IS four lines (376 + 4x48 + 28.5 = 596.5, the Figma y),
+   and anything longer simply pushes the rest down instead of colliding. */
+#talk .flow{
+  position:absolute;left:1035px;top:0;width:820px;
+  transform:translateY(376px);
+}
+#talk .said{
+  margin:0;
+  font-family:"alverata-irregular",serif;font-weight:400;
+  font-size:32px;line-height:48px;color:#fff;      /* 48px leading, measured */
+}
+#talk .choices{
+  margin:28.5px 0 0;padding:0;list-style:none;
+}
+#talk .choices li{
+  display:flex;align-items:center;gap:16px;
+  min-height:49px;margin-bottom:17px;             /* 49 + 17 = the 66px rhythm */
+  cursor:pointer;
+}
+#talk .choices li:last-child{ margin-bottom:0 }
+#talk .choices b{
+  flex:none;
+  width:49px;height:49px;border-radius:9.5px;
+  background:#D9A05B;
+  font-family:"masonic-lodge",serif;font-weight:400;
+  font-size:24px;color:#061C1E;
+  display:flex;align-items:center;justify-content:center;
+}
+#talk .choices span{
+  flex:1;min-width:0;                              /* so a long choice wraps */
+  font-family:"alverata-irregular",serif;font-weight:400;
+  font-size:24px;line-height:1.3;color:#fff;
+}
+/* A choice is a button whether or not it looks like one — people click them. */
+#talk .choices li:hover b{ background:#F0C083 }
+#talk .choices li:hover span{ color:#F6DCA6 }
+
+/* THIS ONE COSTS YOU LIGHT.
+
+   A mark rather than a number, because daylight is never a number in this
+   game and a dialogue sheet is the last place to start. One small ember
+   disc with its own glow — the lantern, shrunk — against nothing at all on
+   the free options. The difference between a row with a pip and a row
+   without is the whole rule, and it is learnable in one conversation.
+
+   Right-aligned on its own, well clear of the text, so a wrapping choice
+   never collides with it and the column of pips reads down the sheet. */
+#talk .choices .pip{
+  flex:none;margin-left:auto;
+  width:13px;height:13px;border-radius:50%;
+  background:#D9A05B;
+  box-shadow:0 0 0 5px rgba(217,160,91,.13), 0 0 14px 4px rgba(217,160,91,.42);
+}
+#talk .choices li:hover .pip{
+  background:#F6DCA6;
+  box-shadow:0 0 0 5px rgba(217,160,91,.2), 0 0 18px 6px rgba(217,160,91,.55);
+}
+
+/* Not in the Figma frame, but the conversation needs a way out on screen.
+   Set in the same vocabulary so it does not read as a different designer. */
+#talk .esc{
+  margin-top:82.5px;                 /* three choices -> the designed y 860 */
+  display:flex;align-items:center;gap:14px;
+  font-family:"alverata-irregular",serif;font-size:20px;color:#6E8884;
+}
+#talk .esc b{
+  font-family:"masonic-lodge",serif;font-weight:400;font-size:16px;
+  color:#D9A05B;border:1px solid #D9A05B;border-radius:6px;
+  padding:5px 10px;line-height:1;
+}
+
+/* The sheet is the one frame you interact with, so it takes pointer events
+   back from .frame — everything else on screen must stay click-through. */
+#talk .frame{ pointer-events:auto }
+
+/* ---------- the character intro ---------- */
+#intro{
+  position:fixed;inset:0;z-index:13;
+  background:#071414;
+}
+#intro[hidden]{display:none}
+#intro svg{
+  position:absolute;inset:0;
+  width:100%;height:100%;
+  display:block;
+}
+
+/* ============================================================================
+   THE SEARCH PROMPT — Loudon's design, HoldEToSearch.svg / Searching.svg
+
+   Idle:    an outlined ember pill, rx9.5, "Hold E To Search" inside in
+            Masonic Lodge 16px ember; the object's name under it in
+            Masonic Lodge 24px white.
+
+            The pill hugs its caption with 10.5 a side. For the search caption
+            that works out at 205.6 — which is the progress track's 206. So for
+            searching the pill IS the bar and nothing grows; the shorter
+            captions on doors, exits and people simply come out narrower.
+   Holding: the pill becomes a 206x41 track and fills with ember; the name
+            under it is replaced by "searching...".
+
+   Both are centred on the thing they label, and the pill and the track are
+   each centred in their own Figma frame — so the pill grows into the track
+   in place rather than jumping sideways.
+
+   This is the one piece of UI that is NOT screen-anchored: it follows an
+   object in the world and slides with the camera, so it has no fixed x.
+   It is scaled by the same factor as the rest of the UI (see promptScale())
+   so its weight matches the dialogue at any window size.
+   ========================================================================== */
+#prompt{
+  position:fixed;z-index:8;
+  opacity:0;transition:opacity .18s ease;
+  pointer-events:none;
+  transform-origin:50% 100%;      /* grows from its own centre, bottom-anchored */
+  /* the old text-shadow and font sizing no longer apply */
+  text-shadow:none;letter-spacing:normal;white-space:nowrap;
+}
+#prompt.on{opacity:1}
+
+/* THE PILL HUGS ITS TEXT.
+
+   Measured off HoldEToSearch.svg: the box is 206 and "Hold E To Search" sets
+   at 184.56 in Masonic Lodge 16px, which is 10.5 a side. Every other caption
+   gets the same padding, so the width comes from JS. */
+#prompt .pill{
+  position:relative;
+  height:41px;border-radius:9.5px;
+  border:1px solid #D9A05B;
+  margin:0 auto 0;
+  display:flex;align-items:center;justify-content:center;
+  box-sizing:border-box;
+  transition:width .18s ease;
+  overflow:hidden;
+}
+#prompt .pill span{
+  position:relative;z-index:1;
+  font-family:"masonic-lodge",serif;font-weight:400;
+  font-size:16px;line-height:1;color:#D9A05B;
+}
+/* the fill, which only exists mid-hold */
+#prompt .pill i{
+  position:absolute;left:0;top:0;bottom:0;
+  width:0;border-radius:9.5px;
+  background:#D9A05B;
+}
+/* The track is a fixed 206 whatever the caption was — it is a progress
+   bar now, and a bar whose length depends on the label would read as
+   different amounts of progress for different objects. */
+#prompt.holding .pill{ width:206px !important; padding:0; }
+/* Searching.svg has no text in the track — the fill IS the content, and the
+   word moves to the label underneath. Leaving the idle caption in place meant
+   "Hold E To Search" sat there being eaten by the bar. */
+#prompt.holding .pill span{ display:none }
+
+#prompt .name{
+  margin-top:0;
+  font-family:"masonic-lodge",serif;font-weight:400;
+  font-size:24px;line-height:1;color:#fff;
+  text-align:center;
+  /* Figma: pill bottom 40.5, name baseline 80.94 -> ~24px of gap to the cap */
+  padding-top:16px;   /* pill bottom 41.5 -> name baseline 81.94 */
+}
+
+/* Spent, and the one-press variants, are NOT designed yet — these are the old
+   treatment carried over so nothing is invented. Marked so it is obvious on
+   screen which parts are still waiting for a frame. */
+#prompt.spent .pill{display:none}
+#prompt.spent .name{color:#5D7A77;font-style:italic;padding-top:0}
+
+/* ============================================================================
+   THE ENDINGS — Loudon's Lose Screen.svg / Win Screen.svg
+
+   Both authored at 3200x1800, same 16:9 as the dialogue, and both share one
+   skeleton: a blurred disc behind, artwork across the middle, a kicker and a
+   headline on the same two baselines, the three part slots, a tally, and the
+   restart row. Only the colour and the cast change.
+   ========================================================================== */
+#end.ending{ position:fixed;inset:0;z-index:14 }
+#end.lost{ background:#0D1010 }
+#end.wonx{ background:#061C1E }
+
+/* THE BLOOM OVER THE RIDGE.
+
+   Faithful to the Figma filter rather than approximated. Both screens use the
+   same construction: a disc of r386.5, drop-shadowed with the shape DILATED by
+   331 and blurred, then the whole group blurred again and dropped to 50%.
+
+   feMorphology dilate -> box-shadow spread.
+   feGaussianBlur stdDeviation -> box-shadow blur is twice the deviation, so
+   125 becomes 250; the group's own 13.15 goes straight into filter: blur().
+   A radial-gradient was the wrong shape entirely — it has no solid core. */
+#end.ending .bloom{
+  position:absolute;top:-123px;
+  width:773px;height:773px;border-radius:50%;
+  opacity:.5;
+  filter:blur(13.15px);
+}
+#end.lost .bloom{
+  left:1181px;
+  background:#E13535;
+  box-shadow:66px 70px 250px 331px #E13535;
+}
+#end.wonx .bloom{
+  left:1214px;
+  background:#617973;
+  box-shadow:66px 70px 250px 331px #617973;
+}
+
+/* It is standing over you, tilted. */
+/* IT IS STANDING OVER YOU, TILTED — AND IT IS BLACK NOW.
+
+   The artwork's own ink is a grey a shade or two LIGHTER than this screen's
+   #0D1010 ground, so the torso read as a pale wedge running down through
+   the headline to the bottom of the frame: nine hundred pixels of
+   distraction sitting on the one line of type that matters.
+
+   brightness(0) takes every opaque pixel to pure black and leaves the alpha
+   alone. Against the ground it disappears; against the red bloom behind the
+   shoulders it becomes a silhouette. You see the shape of it exactly where
+   the light is and nowhere else, which is the whole idea of the game in one
+   picture. The plate lives on ::before so the filter cannot reach the eyes. */
+#end.lost .revenant{
+  position:absolute;left:985px;top:104px;width:1502px;height:2218px;
+  transform:rotate(10.31deg);transform-origin:0 0;
+}
+#end.lost .revenant::before{
+  content:'';position:absolute;inset:0;
+  background:url('../../art/characters/revenant-lose.png') no-repeat center/100% 100%;
+  filter:brightness(0);
+  /* AND IT DOES NOT HAVE A BOTTOM HALF.
+
+     Black alone was not enough: #0D1010 is not #000, so nine hundred pixels
+     of torso still read as a wedge running down through the headline. The
+     figure only needs to exist where the bloom is behind it, so it is faded
+     out below the shoulders — opaque to 24% of its own height, gone by 46%.
+     What is left is a head and a pair of shoulders cut out of the red, and
+     nothing at all over the type. Same trick the villagers use at the
+     bottom of their plate, for the same reason. */
+  -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 24%,rgba(0,0,0,0) 46%);
+          mask-image:linear-gradient(to bottom,#000 0%,#000 24%,rgba(0,0,0,0) 46%);
+}
+
+/* AND THE EYES COME BACK RED.
+
+   Blacking the plate takes the artwork's grey eyes with it, and a faceless
+   wedge is not frightening, it is a hole. These are the same two marks the
+   thing wears in the valley, at the same measured fractions of its own
+   drawing — 22.59% down, 49.58% across, 5.86% apart, each 3.56% wide — so
+   the lose screen and the near plane are one creature. Red rather than the
+   plate's grey, because red is what it has in the game, and because red on
+   black with a red bloom behind it is the only colour this screen has ever
+   needed. */
+#end.lost .revenant .reye{
+  position:absolute;top:501px;width:53.5px;height:44px;
+  border-radius:40%;background:#E13535;
+  box-shadow:0 0 34px 10px rgba(225,53,53,.42);
+}
+#end.lost .revenant .reye.l{ left:700.7px;transform:rotate(15deg) }
+#end.lost .revenant .reye.r{ left:788.7px;transform:rotate(-15deg) }
+
+/* The win: the cart you came to fix, the lantern still lit, and you beside it. */
+#end.wonx .cart{
+  position:absolute;left:591px;top:578px;width:2018px;height:930px;
+  background:url('../../art/props/crates.png') no-repeat center/100% 100%;
+}
+/* THE LANTERN, STILL LIT.
+
+   A crisp amber disc of r91 at half opacity with a halo around it: the same
+   circle dilated by 118 and blurred by 53.6, which is a box-shadow of spread
+   118 and blur 107 (twice the deviation). About 632px across in all.
+
+   What was here before was a soft radial fade 182px wide — the right colour
+   in roughly the right place, and none of the shape. Figma even marks the
+   circle shape-rendering="crispEdges"; the point is a defined source with
+   light coming off it, not a smudge. */
+#end.wonx .lantern{
+  position:absolute;left:1719px;top:702px;width:182px;height:182px;
+  border-radius:50%;
+  background:rgba(217,160,91,.5);
+  box-shadow:0 4px 107px 118px rgba(217,160,91,.5);
+}
+
+#end.wonx .walker{
+  position:absolute;left:1301px;top:225px;width:599px;height:860px;
+  background:url('../../art/characters/walker.png') no-repeat center/100% 100%;
+}
+
+/* ---------------------------------------------------------------------------
+   THE FOURTH SHAPE: what is in the cart.
+
+   The carried ending is the win frame with one thing added, so the player
+   reads "I got out" first and then sees it. Everything about the placement is
+   in service of being noticed SECOND, not missed.
+
+   POSITION. crates.png is 501x231 drawn into 2018x930 at (591,578), a uniform
+   4.027x, so a source pixel maps to frame 591 + x*4.027, 578 + y*4.027. Its
+   silhouette's top edge over source x 76..164 runs y 57..31, which is frame Y
+   807..703 — a load line sloping up to the right. The figure sits at frame x
+   940..1319 so it straddles that run, left of the walker (who starts at 1301
+   and paints over the overlap), on the opposite side of the frame from the
+   lantern. Its eyes land at 22.6% of its own height, which at 560px tall and
+   top 590 puts them at Y 717 — about seventy pixels clear of the load line,
+   which is head-and-collar and nothing else.
+
+   RIM. The same one-sided trick the thing uses in the valley, warmed and
+   turned to face the lantern at 1719: the body is the darkest value in the
+   palette sitting against crates that are nearly the same value, so without
+   an edge it is a hole, not a shape. One side only. Rimming both reads as a
+   sticker with a keyline. */
+#end.carried .stowed{
+  position:absolute;left:940px;top:590px;width:379px;height:560px;
+  background:url('../../art/characters/revenant.png') no-repeat center/100% 100%;
+  filter:drop-shadow(5px 0 0 rgba(217,160,91,.42))
+         drop-shadow(0 -4px 0 rgba(150,180,175,.22));
+}
+
+/* BOTH LINES ARE CENTRED, not pinned.
+
+   Figma exports a baked-in `x` for every text run, so the frames look like
+   they use fixed lefts — 1120.61 and 425.078 on the lose screen, 994.328 and
+   925.492 on the win. They are not: measure each line and every one of those
+   four centres lands on 1600, which is exactly half of 3200. They were
+   centred all along.
+
+   That matters because the copy is not fixed. Pinning the left edge made a
+   longer kicker wrap onto a second line and crash into the headline the first
+   time the caught ending used a sentence instead of a phrase. Centring is
+   both what was drawn and the thing that survives a rewrite. */
+#end.ending .kicker,
+#end.ending h1{
+  position:absolute;top:0;left:0;width:3200px;
+  margin:0;text-align:center;white-space:nowrap;text-shadow:none;
+  font-family:"masonic-lodge",serif;font-weight:400;line-height:1;
+}
+/* SET BY BASELINE, NOT BY BOX TOP.
+
+   Win Screen.svg puts the 72px kicker's baseline at y 1042.8 and the 144px
+   headline's at 1193.8. A CSS block positioned by its top lands its
+   baseline wherever the font's ascent and half-leading happen to put it,
+   which measured 1047 and 1203 — four and nine pixels low. These are those
+   measurements minus the error, so the type sits where it was drawn. */
+#end.ending .kicker{ font-size:72px; transform:translateY(971px) }
+#end.ending h1     { font-size:144px;transform:translateY(1050px) }
+#end.lost  .kicker,#end.lost h1 { color:#E13535 }
+#end.wonx  .kicker,#end.wonx h1 { color:#D9A05B }
+
+#end.ending .tally{
+  position:absolute;left:0;top:1400px;width:3200px;text-align:center;margin:0;
+  font-family:"alverata-irregular",serif;font-size:48px;line-height:56px;color:#8B663A;
+}
+
+/* Recovered is an amber tile with the part's mark cut into it; the ones you
+   never found are an outline and nothing, which is the point of the screen. */
+/* MARGIN ZERO IS NOT TIDYING, IT IS THE FIX.
+
+   v2-end.css still carries the old centred card's rules, and three of them
+   put a top margin on elements this frame positions absolutely: 34px on the
+   slots, 20px on the tally, 40px on the restart row. `#end .slots` is
+   (1,1,0) and this rule is (1,2,0), so the position and the gap here win
+   and the margin quietly does not. Measured, the slots were sitting at
+   1328.5 while the stylesheet said 1294.5 — which is Loudon's own number
+   out of Win Screen.svg. Thirty-four pixels of nothing between the headline
+   and the boxes, in every ending, since the frame was built. */
+#end.ending .slots{
+  position:absolute;left:1455.5px;top:1294.5px;display:flex;gap:21.6px;
+  margin:0;
+}
+#end.ending .slot{
+  width:81.9px;height:83.2px;border-radius:6.2px;box-sizing:border-box;
+  border:3.1px solid #E13535;
+  display:flex;align-items:center;justify-content:center;
+}
+#end.wonx .slot{ border-color:#8B663A }
+#end.ending .slot.has{ background:#D9A05B;border-color:#D9A05B }
+#end.ending .slot svg{ width:52px;height:52px;display:block }
+#end.ending .slot:not(.has) svg{ display:none }
+
+/* v2-end.css makes .again an inline-flex for the old card; text-align cannot
+   centre a flex container's items, hence justify-content and the margin reset. */
+#end.ending .again{
+  position:absolute;left:0;top:1640px;width:3200px;margin:0;
+  display:flex;justify-content:center;align-items:center;gap:0;
+  font-family:"alverata-irregular",serif;font-size:34px;color:#8B663A;
+}
+#end.ending .again b{
+  font-family:"masonic-lodge",serif;font-weight:400;
+  border:2px solid currentColor;border-radius:8px;
+  padding:7px 16px;margin-right:16px;
+}
+#end.lost .again b{ color:#E13535 }
+#end.wonx .again b{ color:#D9A05B }

@@ -1,0 +1,385 @@
+/* ============================================================================
+   BENIGHTED — FIVE WAYS TO TEACH IT  (a bake-off, not a shipping file)
+
+   Loudon, after playing the single card: "I don't think that the daylight
+   system will be fully understood right away. What if the tutorial was a set
+   of slides that you go through... just to show the different states with the
+   light. I also think that telling people about the notebook is a really good
+   idea."
+
+   Both notes point at the same thing: the card DESCRIBES daylight, and
+   daylight is the one mechanic in this game that cannot be described. It is a
+   lantern radius. You have to see it shrink.
+
+   So each of these five shows it instead, in a different place and at a
+   different cost to the player's time. They are selected by ?onboard= and
+   exactly one is ever live. Four of them live here; the fifth (`card`) is in
+   v2-brief.js, which also owns the four world lines all five share.
+
+   THIS FILE IS MEANT TO LOSE FOUR FIFTHS OF ITSELF. When one is picked, the
+   other four come out and the winner moves into a file of its own.
+   ========================================================================== */
+
+/* ---------------------------------------------------------------------------
+   1. SLIDES — a short deck before the valley
+---------------------------------------------------------------------------- */
+#ob[hidden]{display:none}
+#ob{
+  position:fixed;inset:0;z-index:14;
+  display:flex;align-items:center;justify-content:center;
+  padding:clamp(14px,3vh,40px) 16px;
+  background:rgba(4,14,15,.95);
+  overflow-y:auto;
+}
+
+/* A FIXED FRAME. Sized to content, the deck grew by 240px the moment the
+   light ladder appeared and shrank again on the last card, so paging through
+   it made the whole box jump around the screen. A deck is one object you turn
+   pages inside, not five boxes of different sizes shown in sequence. */
+#ob .deck{
+  width:min(1040px,100%);max-height:100%;min-height:min(540px,76vh);
+  display:flex;flex-direction:column;min-height:0;
+  background:#061C1E;border:1px solid #23413F;
+  box-shadow:0 30px 90px rgba(0,0,0,.7);
+  padding:clamp(18px,2.6vw,30px) clamp(20px,3vw,38px) clamp(12px,1.6vw,18px);
+}
+
+#ob .slide{display:none;min-height:0;overflow-y:auto;flex:1}
+#ob .slide.on{display:block}
+
+#ob h2{
+  font-family:"masonic-lodge",Georgia,serif;font-weight:400;
+  font-size:clamp(22px,3vw,30px);line-height:1.05;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--ember);
+  margin:0 0 4px;
+}
+#ob .lede{
+  font-family:"alverata-irregular",Georgia,serif;
+  font-size:clamp(14px,1.6vw,16px);line-height:1.55;color:var(--ink);
+  margin:0 0 clamp(12px,1.6vw,18px);max-width:70ch;
+}
+#ob .lede b{color:var(--ember);font-weight:400}
+
+/* THE LADDER. Four real frames of the same spot in the churchyard at four
+   different hours, captured out of this build by ?cap=spot&dl=. Not a
+   diagram of the daylight system — the daylight system, photographed. The
+   whole argument for slides is in this one row. */
+#ob .strip{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:clamp(6px,.9vw,12px);
+}
+#ob .strip figure{margin:0}
+#ob .strip img{
+  display:block;width:100%;height:auto;
+  border:1px solid #1B3A3B;background:#040E0F;
+}
+#ob .strip figcaption{
+  font-family:"alverata-irregular",Georgia,serif;
+  font-size:clamp(11px,1.25vw,13px);line-height:1.35;color:#8FA8A4;
+  margin-top:7px;
+}
+#ob .strip figcaption b{
+  display:block;font-family:"masonic-lodge",Georgia,serif;font-weight:400;
+  font-size:11px;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--ember);margin-bottom:2px;
+}
+
+/* A pair of frames, for the two verbs. */
+#ob .pair{display:grid;grid-template-columns:1fr 1fr;gap:clamp(12px,1.8vw,22px)}
+#ob .pair img{display:block;width:100%;height:auto;border:1px solid #1B3A3B}
+#ob .pair p{
+  font-family:"alverata-irregular",Georgia,serif;
+  font-size:clamp(13px,1.45vw,15px);line-height:1.5;color:var(--ink);
+  margin:9px 0 0;
+}
+#ob .pair h3,#ob .callouts h3{
+  font-family:"masonic-lodge",Georgia,serif;font-weight:400;
+  font-size:12px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--ember);margin:0 0 8px;
+}
+
+/* The book slide: the real notebook, with the three things it is for. */
+#ob .book{display:grid;grid-template-columns:1.35fr 1fr;gap:clamp(14px,2.2vw,26px);align-items:start}
+#ob .book img{display:block;width:100%;height:auto;border:1px solid #1B3A3B}
+#ob .callouts li{
+  font-family:"alverata-irregular",Georgia,serif;
+  font-size:clamp(13px,1.45vw,15px);line-height:1.5;color:var(--ink);
+  margin-bottom:.6em;
+}
+#ob .callouts ul{margin:0;padding-left:1.1em}
+#ob .callouts b{color:var(--ember);font-weight:400}
+
+/* ---------- the deck's own controls ---------- */
+#ob .bar{
+  flex:none;display:flex;align-items:center;gap:14px;
+  margin-top:clamp(12px,1.6vw,18px);padding-top:clamp(10px,1.3vw,14px);
+  border-top:1px solid #163334;
+}
+#ob .dots{display:flex;gap:7px;margin-right:auto}
+#ob .dots i{
+  width:7px;height:7px;border-radius:50%;background:#23413F;
+  transition:background .2s ease;
+}
+#ob .dots i.on{background:var(--ember)}
+#ob .bar button{
+  font:inherit;font-family:"masonic-lodge",Georgia,serif;font-weight:400;
+  font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+  cursor:pointer;background:none;color:#5D7A77;
+  border:1px solid #23413F;border-radius:3px;padding:5px 12px;
+}
+#ob .bar button:hover{color:var(--ink);border-color:#3A5E5B}
+#ob .bar button.next{color:var(--ember);border-color:#4A3A24}
+#ob .bar button.next:hover{color:#F6DCA6;border-color:var(--ember)}
+#ob .bar .hint{
+  font-family:"alverata-irregular",Georgia,serif;font-size:12px;color:#4F6C69;
+}
+
+/* ---------------------------------------------------------------------------
+   2. METER — daylight as a drawn instrument that is always on screen
+   An arc with the sun sliding down it, and three notches for the three days.
+   The lesson is not read, it is watched: the first walk moves it.
+---------------------------------------------------------------------------- */
+#meter{
+  position:fixed;top:12px;right:16px;z-index:10;
+  width:168px;pointer-events:none;
+  opacity:0;transition:opacity .7s ease;
+}
+body.meter #meter{opacity:1}
+#meter svg{display:block;width:100%;height:auto;overflow:visible}
+#meter .days{
+  display:flex;gap:5px;justify-content:flex-end;margin-top:5px;
+}
+#meter .days i{
+  width:16px;height:2px;background:#23413F;
+}
+#meter .days i.spent{background:var(--ember);opacity:.75}
+
+/* The one-time pointer. A hairline leader and a line of text, for five
+   seconds, the first time the thing it points at actually moves — a label
+   that appears before anything has happened is a label nobody reads. */
+.point{
+  position:fixed;z-index:11;pointer-events:none;
+  font-family:"alverata-irregular",Georgia,serif;
+  font-size:14px;line-height:1.4;color:var(--ember);
+  text-shadow:0 1px 12px rgba(4,14,15,.95);
+  opacity:0;transition:opacity .5s ease;
+  max-width:230px;
+}
+.point.on{opacity:1}
+.point::before{
+  content:'';position:absolute;background:var(--ember);opacity:.55;
+}
+.point.toright::before{ top:.65em;right:-26px;width:22px;height:1px }
+.point.up::before{ left:50%;top:-20px;width:1px;height:16px }
+
+/* ---------------------------------------------------------------------------
+   3. PROMPTS — the captions in the world carry the reason, the first time
+   No new surface at all. The pill already names the thing and the key; for
+   the first encounter with each verb it also says why you would bother.
+---------------------------------------------------------------------------- */
+#why{
+  position:fixed;z-index:9;pointer-events:none;
+  transform:translateX(-50%);
+  width:max-content;max-width:min(38ch,70vw);
+  text-align:center;
+  font-family:"alverata-irregular",Georgia,serif;
+  font-style:italic;font-size:15px;line-height:1.35;
+  color:#C7B394;text-shadow:0 1px 10px rgba(4,14,15,.95);
+  opacity:0;transition:opacity .35s ease;
+}
+#why.on{opacity:1}
+
+/* ---------------------------------------------------------------------------
+   4. LEDGER — the run opens with your own book open to its first page
+   Borrows #notes' paper exactly, because it IS that object. Teaches TAB by
+   being the thing TAB puts away.
+---------------------------------------------------------------------------- */
+#ledger[hidden]{display:none}
+#ledger{
+  position:fixed;inset:0;z-index:14;
+  display:flex;align-items:center;justify-content:center;
+  padding:24px 16px;background:rgba(4,14,15,.9);overflow-y:auto;
+  cursor:pointer;
+}
+#ledger .sheet{
+  width:min(640px,100%);
+  background:#E6DCC4;color:#2A2620;border-radius:2px;
+  padding:clamp(26px,3.4vw,38px) clamp(22px,4vw,40px) clamp(20px,2.6vw,28px);
+  box-shadow:0 24px 70px rgba(0,0,0,.6);
+  font-family:Georgia,"Times New Roman",serif;
+}
+#ledger h2{
+  margin:0 0 18px;font-size:21px;font-weight:400;font-style:italic;
+  letter-spacing:.01em;color:#2A2620;
+}
+#ledger p{font-size:15.5px;line-height:1.62;margin:0 0 .85em}
+#ledger p:last-of-type{margin-bottom:0}
+#ledger .hand{
+  /* The previous carter's hand. Same paper, different pen. */
+  border-left:2px solid #B9A77F;padding-left:14px;margin:0 0 1em;
+  font-style:italic;color:#4A4236;
+}
+#ledger .close{
+  margin-top:22px;padding-top:14px;border-top:1px solid #C9BA99;
+  font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:#6B6252;
+}
+#ledger .close b{
+  font-family:var(--mono);font-size:11px;color:#2A2620;
+  border:1px solid #B9A77F;border-radius:3px;padding:2px 7px;margin-right:7px;
+}
+
+/* ===========================================================================
+   0. PROLOGUE → PANEL   (the chosen flow)
+   =========================================================================== */
+
+/* ---------- the prologue: story on black, nothing else on screen ---------- */
+#pro[hidden]{display:none}
+#pro{
+  position:fixed;inset:0;z-index:16;
+  display:flex;align-items:center;justify-content:center;
+  padding:clamp(24px,6vh,80px) clamp(22px,7vw,90px);
+  background:#040E0F;
+  cursor:pointer;
+  opacity:1;transition:opacity .9s ease;
+}
+/* The handoff out. Nine hundred milliseconds of black lifting off the valley,
+   which is long enough to read as a cut to the world rather than as a panel
+   being closed. */
+#pro.out{opacity:0;pointer-events:none}
+
+#pro .pro{width:min(760px,100%);position:relative}
+
+/* Every beat is stacked in the same place and only one is lit, so the block of
+   text does not jump down the screen as the pairs get longer. */
+#pro .beat{
+  grid-area:1/1;
+  opacity:0;transform:translateY(8px);
+  transition:opacity .85s ease,transform .85s ease;
+  pointer-events:none;
+}
+#pro .pro{display:grid}
+#pro .beat.on{opacity:1;transform:none}
+
+#pro p{
+  font-family:"alverata-irregular",Georgia,serif;
+  font-size:clamp(19px,2.5vw,27px);line-height:1.5;
+  color:var(--ink);margin:0 0 .75em;text-wrap:balance;
+}
+#pro p:last-child{margin-bottom:0}
+#pro em{font-style:normal;color:var(--ember)}
+
+#pro .proskip{
+  position:absolute;left:0;right:0;bottom:-74px;
+  font-family:"alverata-irregular",Georgia,serif;
+  font-size:12.5px;letter-spacing:.04em;color:#39504E;
+  /* Late, and quiet. A skip offered in the first second is a skip taken. */
+  opacity:0;animation:proskip 1s ease 3.2s forwards;
+}
+#pro .proskip .k{font-family:var(--mono);font-size:11px;color:#5D7A77}
+@keyframes proskip{to{opacity:1}}
+
+@media (prefers-reduced-motion:reduce){
+  #pro,#pro .beat{transition:none}
+  #pro .proskip{animation:none;opacity:1}
+}
+
+/* ---------- the panel: card 05's right-hand column, over the valley -------- */
+#panel[hidden]{display:none}
+#panel{
+  position:fixed;inset:0;z-index:15;
+  display:flex;align-items:center;justify-content:center;
+  padding:clamp(14px,3vh,40px) 16px;
+  /* Lighter than the prologue's black on purpose: the valley behind this is
+     the subject of every sentence on it, and a panel that hides the thing it
+     describes is back to being a card. */
+  background:rgba(4,14,15,.72);
+  overflow-y:auto;cursor:pointer;
+}
+
+#panel .pcard{
+  width:min(660px,100%);max-height:100%;
+  display:flex;flex-direction:column;min-height:0;
+  background:#061C1E;border:1px solid #23413F;
+  box-shadow:0 30px 90px rgba(0,0,0,.72);
+  padding:clamp(18px,2.4vw,26px) clamp(20px,2.8vw,32px) clamp(13px,1.7vw,18px);
+}
+
+#panel h2{
+  flex:none;
+  font-family:"masonic-lodge",Georgia,serif;font-weight:400;
+  font-size:clamp(17px,2.2vw,22px);line-height:1;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--ember);
+  margin:0 0 clamp(12px,1.7vw,16px);
+  padding-bottom:clamp(10px,1.4vw,14px);border-bottom:1px solid #163334;
+}
+
+#panel .pbody{min-height:0;overflow-y:auto}
+#panel .pblock + .pblock{margin-top:clamp(13px,1.7vw,18px)}
+#panel h3{
+  font-family:"masonic-lodge",Georgia,serif;font-weight:400;
+  font-size:11.5px;letter-spacing:.19em;text-transform:uppercase;
+  color:var(--ember);opacity:.9;margin:0 0 8px;
+}
+#panel p{
+  font-family:"alverata-irregular",Georgia,serif;
+  font-size:clamp(13.5px,1.5vw,15px);line-height:1.52;
+  color:var(--ink);margin:0 0 .55em;
+}
+#panel p:last-child{margin-bottom:0}
+
+#panel .keys{display:grid;grid-template-columns:auto 1fr;gap:7px 14px;margin:0;align-items:baseline}
+#panel .keys dt{
+  font-family:var(--mono);font-size:12px;color:#CFDEDB;background:#0C2628;
+  border:1px solid #2B4D4A;border-radius:3px;padding:3px 8px;
+  text-align:center;white-space:nowrap;
+}
+#panel .keys dd{
+  margin:0;font-family:"alverata-irregular",Georgia,serif;
+  font-size:clamp(13px,1.45vw,14.5px);line-height:1.42;color:#A9C0BC;
+}
+#panel .keys dd b{color:var(--ember);font-weight:400}
+#panel .pip{
+  display:inline-block;width:7px;height:7px;border-radius:50%;
+  background:var(--ember);vertical-align:.08em;margin:0 .15em;
+}
+
+/* THE LADDER IS THE REASON THIS PANEL IS 660 AND NOT 460. Four frames in a
+   single column have to be wide enough that you see the far END OF THE YARD
+   go, not merely that the picture gets darker — that was the complaint about
+   the same strip on card 05, where they were 150px. Here they are ~150 too,
+   so they get the full width of the panel and nothing beside them. */
+#panel .pladder{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:9px}
+#panel .pladder figure{margin:0}
+#panel .pladder img{
+  display:block;width:100%;height:auto;
+  border:1px solid #1B3A3B;background:#040E0F;
+}
+#panel .pladder figcaption{
+  font-family:"masonic-lodge",Georgia,serif;font-weight:400;
+  font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;
+  color:#6E8884;margin-top:4px;text-align:center;
+}
+
+#panel .pgo{
+  flex:none;display:flex;align-items:baseline;justify-content:space-between;gap:14px;
+  margin-top:clamp(13px,1.7vw,18px);padding-top:clamp(11px,1.4vw,14px);
+  border-top:1px solid #163334;
+}
+#panel .pgo .press{
+  font-family:"masonic-lodge",Georgia,serif;font-weight:400;
+  font-size:clamp(12px,1.5vw,14px);letter-spacing:.17em;text-transform:uppercase;
+  color:var(--ember);animation:briefpulse 2.6s ease-in-out infinite;
+}
+#panel .pgo .again{
+  font-family:"alverata-irregular",Georgia,serif;font-size:11.5px;color:#4F6C69;
+}
+@media (prefers-reduced-motion:reduce){ #panel .pgo .press{animation:none;opacity:1} }
+
+@media (max-height:780px){
+  #panel .pcard{padding:16px 22px 12px}
+  #panel p{font-size:13.5px;line-height:1.44;margin-bottom:.45em}
+  #panel .keys dd{font-size:13px;line-height:1.34}
+  #panel .keys{gap:5px 12px}
+  #panel .pblock + .pblock{margin-top:12px}
+  #panel h2{margin-bottom:11px;padding-bottom:9px}
+}

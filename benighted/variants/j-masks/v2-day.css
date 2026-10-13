@@ -1,0 +1,72 @@
+/* ===========================================================================
+   THE DAY CARD — Loudon's NewDay.svg, in his coordinates.
+
+   Every number here is measured off the file, not chosen: the comp is
+   2880x1800 and the card is that box, scaled to fit the window by v2-day.js.
+   Nothing is expressed as a percentage, because a percentage is a second
+   opinion about a layout somebody already decided.
+
+   The one conversion worth writing down is the slots. An SVG stroke straddles
+   the edge it is drawn on, so his 108.804 rect with a 4.10582 stroke occupies
+   112.909 on screen and its visible corner radius is 8.21164 + half the
+   stroke. CSS borders sit inside the box, so the box is the outer number and
+   the position is pulled back by half a stroke to keep the centres where he
+   put them. Get this wrong by two pixels and the icons, which ARE in his
+   coordinates, stop being concentric with their own slots.
+   ========================================================================= */
+
+#day{
+  position:fixed;inset:0;z-index:11;      /* over the HUD, under every dialog */
+  pointer-events:none;                    /* it never takes a click */
+  background:rgba(6,28,30,.5);            /* #061C1E at 50%, his only live wash */
+  overflow:hidden;
+}
+
+#day .card{
+  position:absolute;left:50%;top:50%;
+  width:2880px;height:1800px;
+  margin-left:-1440px;margin-top:-900px;
+  transform-origin:50% 50%;
+}
+
+/* The numeral. Baseline 1184.29 in the comp; line-height is 1 and the top is
+   set from the measured ascent, which v2-day.js corrects on load — see
+   ASCENT there. */
+#day .n{
+  position:absolute;left:155px;top:1009.5px;margin:0;
+  font-family:"masonic-lodge",Georgia,serif;font-weight:400;
+  font-size:233px;line-height:1;color:#D9A05B;
+  white-space:nowrap;
+}
+
+/* The body. x=139, not the numeral's 155: he optically aligned the D. */
+#day .b{
+  position:absolute;left:139px;top:1245.8px;margin:0;width:2300px;
+  font-family:"alverata-irregular",Georgia,serif;font-weight:300;
+  font-size:48px;line-height:56px;color:#fff;
+}
+
+/* The three slots. 108.804 + a 4.10582 stroke, so 112.909 outside. */
+#day .slot{
+  position:absolute;top:1413.997px;
+  width:112.909px;height:114.638px;
+  margin-left:-2.053px;
+  box-sizing:border-box;
+  border:4.10582px solid #D9A05B;border-radius:10.264px;
+  background:transparent;
+}
+#day .slot.on{ background:#D9A05B; }
+
+/* The icons sit in the slot's OWN rect, not the bordered box, because each
+   one still carries the viewBox it had in his file. */
+#day .ico-box{
+  position:absolute;top:1416.05px;
+  width:108.804px;height:110.533px;
+  color:#45331C;                         /* his colour for an empty slot */
+}
+#day .ico-box.on{ color:#072F30; }       /* and for a filled one */
+#day .ico{ display:block;width:100%;height:100%;overflow:visible; }
+
+@media (prefers-reduced-motion:reduce){
+  #day{ transition:none !important; }
+}

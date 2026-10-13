@@ -1,0 +1,141 @@
+/* ============================================================================
+   VARIANT F — THE BOOK
+
+   The one piece of real UI in a game built on not having any, so it is treated
+   as a prop rather than a panel: paper-coloured, set in the serif the wordmarks
+   use, and it covers the scene instead of sitting beside it. You are looking at
+   a thing you are holding, not at an inventory.
+   ========================================================================== */
+
+/* THE BUG THAT BLACKED OUT THE WHOLE GAME.
+
+   #notes carries the `hidden` attribute when closed, and `hidden` works through
+   the UA stylesheet rule [hidden]{display:none} — specificity (0,1,0). The rule
+   below it, #notes{display:flex}, is (1,0,0) and wins. So the notebook never
+   hid: its full-screen rgba(4,14,15,.88) backdrop sat at z-index 12 over the
+   entire game, permanently, and the whole build looked like it was running at
+   dusk indoors.
+
+   Setting `hidden` on an element you have also given a `display` is the classic
+   version of this. An id selector will always beat [hidden] — so say so here,
+   explicitly, rather than relying on the attribute alone. */
+#notes[hidden]{display:none}
+
+#notes{
+  position:fixed;inset:0;z-index:12;
+  display:flex;align-items:center;justify-content:center;
+  padding:24px 16px;
+  background:rgba(4,14,15,.88);
+  overflow-y:auto;
+}
+
+#notes .sheet{
+  width:min(620px,100%);
+  background:#E6DCC4;color:#2A2620;
+  border-radius:2px;
+  padding:30px clamp(20px,4vw,38px) 26px;
+  box-shadow:0 24px 70px rgba(0,0,0,.6);
+  font-family:Georgia,"Times New Roman",serif;
+}
+
+#notes h2{
+  margin:0 0 20px;
+  font-family:Georgia,"Times New Roman",serif;
+  font-size:21px;font-weight:400;font-style:italic;
+  letter-spacing:.01em;color:#2A2620;
+}
+
+#notes ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:19px}
+#notes li{
+  padding-left:15px;
+  border-left:2px solid #C6BB9E;
+}
+#notes li.live{border-left-color:#8A6A2E}
+#notes li.done{border-left-color:#4C6B4F}
+#notes li p{margin:0;font-size:14.5px;line-height:1.66;color:#3A352C}
+#notes li i{font-style:italic;color:#2A2620}
+#notes li.empty p{font-style:italic;color:#6A6355}
+
+#notes .tag{
+  display:block;margin-bottom:5px;
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.15em;text-transform:uppercase;
+  color:#7A7263;
+}
+#notes .tag.live{color:#8A6A2E}
+#notes .tag.done{color:#4C6B4F}
+
+#notes .still{
+  margin-top:24px;padding-top:15px;border-top:1px solid #C6BB9E;
+  font-size:13.5px;font-style:italic;color:#5A5447;
+}
+
+#notes .shut{
+  margin-top:17px;display:flex;align-items:center;gap:9px;
+  font-family:var(--mono);font-size:10px;letter-spacing:.11em;text-transform:uppercase;color:#7A7263;
+}
+#notes .shut b{
+  border:1px solid #A89C80;border-radius:2px;padding:3px 7px;
+  font-weight:400;color:#5A5447;
+}
+
+
+/* --- the standing ledger, added in G -------------------------------------
+   The paper is what you found; the ledger is what it adds up to. A three-day
+   mystery needs the second one on the same sheet, or the player is doing the
+   bookkeeping in their head while a clock runs. */
+
+#notes h2.sub{margin:26px 0 14px;font-size:17px}
+
+#notes ul.ledger{gap:9px;margin-bottom:4px}
+#notes ul.ledger li{
+  padding-left:15px;border-left:2px solid #C6BB9E;
+  font-size:14px;line-height:1.5;color:#3A352C;
+}
+#notes ul.ledger li b{font-weight:400;font-style:italic}
+#notes ul.ledger li.half{border-left-color:#8A6A2E}
+#notes ul.ledger li.live{border-left-color:#4C6B4F;color:#2A2620}
+#notes ul.ledger li.done{border-left-color:#4C6B4F;color:#6A6355;text-decoration:line-through}
+
+#notes li.half{border-left-color:#8A6A2E}
+#notes .tag.half{color:#8A6A2E}
+
+/* SOMEBODY WHO IS NOT THERE ANY MORE. The row stays, struck through, so that
+   opening the book after a night away shows an absence rather than silently
+   being one name shorter. Red rather than the muted grey used for finished
+   business — this is not a thing you completed. */
+#notes ul.people li.gone{
+  border-left-color:#8E2B22;
+  color:#7A6F66;
+}
+#notes ul.people li.gone b{
+  text-decoration:line-through;
+  text-decoration-thickness:1px;
+}
+#notes ul.people li.gone .state{color:#8E2B22}
+
+/* The middot between a person's state and what they are holding. It is
+   emitted with no space on either side, so without this the row reads
+   "nothing on them yet ·holding the Leather Harness". Margin rather than a
+   &nbsp; in the markup, so the two sides stay separately styleable. */
+#notes ul.people .sep{margin:0 .45em;color:#A79C80}
+
+/* WHAT THE DISAPPEARANCE COST. Written in the same red as the struck-through
+   name, on both rows it touches — the empty post and the person who can no
+   longer be vouched for — so the two read as one event rather than as two
+   unrelated problems. Italic because it is the book's own observation, not
+   something anybody said to you. */
+/* THE RULE. Set apart from the ledger under it with a rule and the warm
+   accent, because it is the one thing on the sheet that is not bookkeeping —
+   it is the standing instruction every row below is read against. */
+#notes p.rule{
+  margin:0 0 20px;padding:0 0 18px;
+  border-bottom:1px solid #C6BB9E;
+  font-size:14.5px;line-height:1.6;font-style:italic;color:#3A352C;
+  max-width:52ch;
+}
+
+#notes ul.people li p.lost{
+  margin:5px 0 0;font-style:italic;font-size:13.5px;line-height:1.5;
+  color:#8E2B22;
+}
+#notes ul.people li.gone p.lost{color:#9B4A3C}

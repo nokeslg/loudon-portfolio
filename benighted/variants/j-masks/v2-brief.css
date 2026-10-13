@@ -1,0 +1,215 @@
+/* ============================================================================
+   BENIGHTED — THE BRIEFING
+
+   The one screen in the game that talks to the player instead of to the
+   character. It carries three things, in this order, because that is the order
+   somebody who has never seen this build needs them in:
+
+     WHAT IS HAPPENING   the premise, four sentences
+     WHAT IT COSTS       daylight is a budget; nothing else explains itself
+     WHAT YOU PRESS      the keys, and what the loop actually is
+
+   WHY IT IS NOT PAPER. The notebook is paper — #E6DCC4, Georgia, a sheet you
+   are holding. If this were paper too the two would read as the same prop, and
+   they are opposites: the book is what the CHARACTER knows, this is what the
+   PLAYER needs. So this is the night ground with an ember rule, closer to a
+   frontispiece than to a handbill, which also means it composes with whichever
+   title screen comes out of docs/start-screens.html instead of fighting it.
+
+   This is content for the UI pass to be designed against. The structure, the
+   wording and the teaching order are the work here; the box is not precious.
+   ========================================================================== */
+
+/* Same trap as #notes, same fix, and worth saying twice: [hidden] is (0,1,0)
+   from the UA sheet and #brief{display:flex} is (1,0,0), so without this line
+   the card never closes and the game is unplayable behind it. */
+#brief[hidden]{display:none}
+
+#brief{
+  position:fixed;inset:0;z-index:14;        /* over #notes (12), under nothing */
+  display:flex;align-items:center;justify-content:center;
+  padding:clamp(16px,4vh,48px) 16px;
+  background:rgba(4,14,15,.93);
+  overflow-y:auto;
+  cursor:pointer;                            /* the whole thing is the button */
+}
+
+/* THE CARD OWNS ITS OWN HEIGHT, and this is not a nicety.
+
+   Written as a plain block it was 940px tall, so at 1440x900 the title was
+   cut off the top and "press any key to begin" was below the fold — which is
+   the one line on the card that must never be the thing that scrolls off,
+   because a player who cannot see it does not know the game is waiting.
+
+   So the card is a flex column capped at the viewport, and the middle is the
+   only part that scrolls: the name stays at the top, the instruction stays at
+   the bottom, and a short window costs you a scrollbar through the body
+   instead of the two things that frame it. */
+#brief .card{
+  width:min(1040px,100%);
+  max-height:100%;
+  display:flex;flex-direction:column;min-height:0;
+  background:#061C1E;
+  border:1px solid #23413F;
+  box-shadow:0 30px 90px rgba(0,0,0,.7);
+  padding:clamp(18px,2.8vw,32px) clamp(20px,3.2vw,40px) clamp(14px,2vw,22px);
+}
+
+/* ---------- the head ---------- */
+#brief .title{
+  font-family:"masonic-lodge",Georgia,serif;font-weight:400;
+  font-size:clamp(28px,4vw,40px);line-height:1;
+  letter-spacing:.14em;text-transform:uppercase;
+  color:var(--ember);margin:0;
+}
+#brief .sub{
+  font-family:"alverata-irregular",Georgia,serif;
+  font-size:clamp(11px,1.4vw,13px);letter-spacing:.2em;text-transform:uppercase;
+  color:#5D7A77;margin:9px 0 0;
+}
+#brief .rule{
+  height:1px;background:#23413F;margin:clamp(13px,1.8vw,18px) 0;flex:none;
+}
+
+/* ---------- two columns: the story, then the machine ----------
+   Stacked under 720px. The premise goes first in the source so that a narrow
+   window still reads in the taught order. */
+/* A fade on the bottom edge of the scroll box — but ONLY when it is actually
+   scrolling, which is why `.scrolls` is set from JS. Applied unconditionally
+   it dimmed the last line of a card that fit perfectly well, which looks like
+   a rendering fault rather than an affordance; CSS cannot ask whether a box
+   overflows, so one measurement on open answers it. */
+#brief .cols.scrolls{
+  -webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 26px),rgba(0,0,0,0));
+          mask-image:linear-gradient(to bottom,#000 calc(100% - 26px),rgba(0,0,0,0));
+}
+#brief .cols{
+  display:grid;grid-template-columns:1fr 1.04fr;
+  gap:clamp(18px,2.6vw,34px);
+  align-items:start;
+  overflow-y:auto;min-height:0;          /* the only part that ever scrolls */
+  padding-right:2px;                      /* so a scrollbar misses the text */
+}
+@media (max-width:760px){ #brief .cols{grid-template-columns:1fr} }
+
+#brief h3{
+  /* eyebrow */
+  font-family:"masonic-lodge",Georgia,serif;font-weight:400;
+  font-size:12px;letter-spacing:.19em;text-transform:uppercase;
+  color:var(--ember);opacity:.9;
+  margin:0 0 8px;
+}
+#brief h3 + h3,#brief .block + .block{margin-top:0}
+#brief .block + .block{margin-top:clamp(13px,1.7vw,18px)}
+
+/* THE LOOP RUNS UNDER BOTH COLUMNS. In a half-column it was five lines and it
+   was the thing that fell off the bottom of a 720-tall window; across the full
+   measure it is two, and it reads as the summary it is rather than as a fourth
+   sibling heading. Its paragraphs drop the 58ch cap for the same reason. */
+#brief .block.wide{
+  grid-column:1/-1;
+  margin-top:clamp(10px,1.4vw,14px);
+}
+#brief .block.wide p{max-width:none}
+
+#brief p{
+  font-family:"alverata-irregular",Georgia,serif;
+  font-size:clamp(13.5px,1.55vw,15.5px);line-height:1.56;
+  color:var(--ink);margin:0 0 .6em;
+  max-width:58ch;                            /* measure, even in a dark box */
+}
+#brief p:last-child{margin-bottom:0}
+#brief p.turn{color:var(--ember)}            /* the one line that reframes it */
+
+/* ---------- the keys ----------
+   A definition list, not a table: the key is the term and the verb is the
+   definition, and that is what a screen reader should hear. */
+#brief .keys{
+  display:grid;grid-template-columns:auto 1fr;
+  gap:7px clamp(10px,1.4vw,15px);
+  margin:0;align-items:baseline;
+}
+#brief .keys dt{
+  font-family:var(--mono);font-size:12px;letter-spacing:.02em;
+  color:#CFDEDB;background:#0C2628;
+  border:1px solid #2B4D4A;border-radius:3px;
+  padding:3px 8px;text-align:center;white-space:nowrap;
+}
+#brief .keys dd{
+  margin:0;font-family:"alverata-irregular",Georgia,serif;
+  font-size:clamp(13px,1.5vw,15px);line-height:1.45;color:#A9C0BC;
+}
+
+/* The ember dot that marks a costed question in the conversation sheet, shown
+   here at the same size it is shown there, because a legend drawn differently
+   from the thing it explains is not a legend. */
+#brief .pip{
+  display:inline-block;width:7px;height:7px;border-radius:50%;
+  background:var(--ember);vertical-align:.08em;margin:0 .15em;
+}
+
+/* ---------- the foot ---------- */
+#brief .go{
+  flex:none;
+  display:flex;align-items:baseline;justify-content:space-between;gap:16px;
+  margin-top:clamp(14px,1.9vw,20px);
+  padding-top:clamp(12px,1.5vw,15px);
+  border-top:1px solid #163334;
+}
+#brief .go .press{
+  font-family:"masonic-lodge",Georgia,serif;font-weight:400;
+  font-size:clamp(13px,1.6vw,15px);letter-spacing:.17em;text-transform:uppercase;
+  color:var(--ember);
+  animation:briefpulse 2.6s ease-in-out infinite;
+}
+#brief .go .again{
+  font-family:"alverata-irregular",Georgia,serif;
+  font-size:12px;letter-spacing:.04em;color:#4F6C69;text-align:right;
+}
+@keyframes briefpulse{0%,100%{opacity:.55}50%{opacity:1}}
+@media (prefers-reduced-motion:reduce){
+  #brief .go .press{animation:none;opacity:1}
+}
+
+
+/* ---------- short windows ----------
+   1280x720 is the floor this has to hold: it is the capture size, it is a
+   half-screen browser on a 1440 laptop, and it is roughly what a projector
+   gives you. The card is laid out for 900 and simply does not fit 720 at the
+   same size, so under 820 it steps down a notch rather than hiding its last
+   paragraph behind the scroll fade — which, on the one screen whose entire
+   job is to be read, is the worst available outcome.
+
+   Height, not width: the thing that runs out is vertical. */
+@media (max-height:820px){
+  #brief .card{ padding:20px 26px 14px }
+  #brief .title{ font-size:clamp(26px,3.4vw,34px) }
+  #brief .rule{ margin:11px 0 }
+  #brief p{ font-size:14px;line-height:1.46;margin-bottom:.52em }
+  #brief .keys dd{ font-size:13.5px;line-height:1.38 }
+  #brief .keys{ gap:5px 12px }
+  #brief h3{ margin-bottom:6px }
+  #brief .block + .block{ margin-top:12px }
+  #brief .go{ margin-top:12px;padding-top:10px }
+}
+
+/* THE LADDER, ON THE CARD. Four real frames of the same corner of the
+   churchyard at four hours, captured out of this build by ?cap=spot&dl=.
+   The note that produced them: "I don't think that the daylight system will
+   be fully understood right away." It will not, from a sentence — it is a
+   lantern radius, and a paragraph about a lantern radius is four frames
+   worse than four frames. */
+#brief .ladder{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:9px;
+}
+#brief .ladder figure{margin:0}
+#brief .ladder img{
+  display:block;width:100%;height:auto;
+  border:1px solid #1B3A3B;background:#040E0F;
+}
+#brief .ladder figcaption{
+  font-family:"masonic-lodge",Georgia,serif;font-weight:400;
+  font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;
+  color:#6E8884;margin-top:4px;text-align:center;
+}
+#brief .keys dd b{color:var(--ember);font-weight:400}

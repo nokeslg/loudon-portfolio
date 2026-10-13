@@ -1,0 +1,104 @@
+/* ============================================================================
+   THE MASKED VILLAGE
+
+   The masks are pure black and bone white and stay that way. Everything else in
+   this game sits on a six-step green ladder; these are the one thing in the
+   valley that is not the colour of the valley, and when the lantern comes up on
+   a face it should look wrong against everything around it.
+   ========================================================================== */
+
+/* ---------- a villager standing in the world ----------
+   The figure is one drawn plate now, not a CSS blob with a mask pasted on it,
+   so there is nothing to lay out: set the height, let the artwork keep its own
+   proportions, and stack the two copies on the same feet. */
+#stage .villager{
+  position:absolute;
+  width:0;                      /* the images are what has width */
+  transform:translateX(-50%);
+  pointer-events:none;
+}
+/* NO DROP SHADOW. There was a soft blurred one here — 7px of blur at 75%
+   black, on both copies, so it doubled. It was the only gradient anywhere in
+   a game built from six flat values with no shading inside a band, and it
+   read as a misregistered duplicate rather than as a shadow. A cut-paper
+   figure does not cast a photographic shadow; its separation comes from the
+   value ladder, which already puts the figure a full rung under the plate
+   behind it. */
+#stage .villager img{
+  position:absolute;bottom:0;left:0;
+  transform:translateX(-50%);
+  height:100%;width:auto;
+}
+/* The drawing, over the hole. Out past the lantern this goes to zero and you
+   are left with a person-shaped piece of the dark — which is the entire point
+   of the build, and the reason the figures are drawn tall. */
+#stage .villager img.lit{ transition:opacity .25s linear }
+
+/* ---------- the conversation ---------- */
+#talk{
+  position:fixed;inset:0;z-index:12;
+  display:flex;align-items:center;justify-content:center;
+  padding:24px 16px;
+  background:rgba(2,8,9,.9);
+}
+/* An id selector beats the UA [hidden] rule, so say it explicitly — this is the
+   bug that blacked out two earlier builds for a whole playtest. */
+#talk[hidden]{display:none}
+
+#talk .sheet{
+  width:min(820px,100%);
+  display:flex;gap:clamp(18px,4vw,42px);align-items:center;
+}
+@media(max-width:620px){ #talk .sheet{flex-direction:column;text-align:center} }
+
+/* The face, lit from below the way a held lamp would light it. */
+#talk .face{
+  flex:none;
+  width:clamp(130px,26vw,230px);
+  display:flex;align-items:center;justify-content:center;
+  filter:drop-shadow(0 -10px 34px rgba(217,160,91,.34));
+}
+/* The PNGs are now bone ink on transparency (see /tmp/mask_alpha.py in the
+   session that made them): alpha from the darkness of the source pixel, colour
+   replaced with bone. No blend mode, no invert — the white field is simply
+   gone, and the white eyes and teeth inside the ink are holes you see the
+   night through, which is what a mask actually is. */
+#talk .face img{
+  object-position:top center;
+  width:100%;height:auto;display:block;
+}
+
+#talk .said{flex:1;min-width:0;display:flex;flex-direction:column;gap:14px}
+#talk .who{
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--ember);
+}
+#talk .said p{
+  margin:0;font-size:clamp(15px,2.1vw,18px);line-height:1.6;color:var(--ink);
+  max-width:46ch;
+}
+
+#talk .choices{
+  list-style:none;margin:8px 0 0;padding:0;
+  display:flex;flex-direction:column;gap:9px;
+}
+#talk .choices li{display:flex;align-items:baseline;gap:11px;font-size:14.5px;line-height:1.45;color:var(--dim,#8FA8A4)}
+#talk .choices b{
+  flex:none;
+  font-family:var(--mono);font-size:11px;font-weight:400;
+  border:1px solid #2A4A48;border-radius:2px;padding:2px 7px;color:var(--ember);
+}
+#talk .choices li span{color:#A9C2BE}
+
+@media (prefers-reduced-motion:reduce){ #stage .villager img{transition:none} }
+
+/* Always present, always the same key, visually separate from the numbered
+   options so it never reads as one of them. */
+#talk .esc{
+  display:flex;align-items:center;gap:9px;margin-top:6px;
+  font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+  color:#5D7A77;
+}
+#talk .esc b{
+  font-weight:400;border:1px solid #23413F;border-radius:2px;padding:2px 6px;
+}

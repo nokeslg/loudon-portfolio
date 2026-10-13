@@ -1,0 +1,111 @@
+/* ============================================================================
+   THE TWO ENDINGS
+
+   Both were a single line of say() text and nothing else, which is the worst
+   place in the game for nothing to happen: it is the only moment the player is
+   guaranteed to be looking.
+
+   The win is THE ONLY DAWN. Every other frame in this game is dusk or worse,
+   so the whole reward is the ladder opening back up and the sky going warm —
+   light you have not seen since the first minute. No score, no stars, no
+   fanfare. The loss is the opposite temperature and ends on your carrying
+   slots, because telling someone how close they came is what makes them press
+   restart.
+   ========================================================================== */
+
+#end{
+  position:fixed;inset:0;z-index:20;display:none;
+  align-items:center;justify-content:center;
+  font-family:var(--sans);
+  opacity:0;transition:opacity 1.6s ease;
+}
+#end.on{display:flex;opacity:1}
+
+/* The wash sits UNDER the words and over the frozen scene, so the location you
+   died in stays legible behind it. Cutting to black would throw away the one
+   piece of context that makes an ending land. */
+#end::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+}
+#end.won::before{
+  background:
+    radial-gradient(ellipse 120% 70% at 50% 112%, rgba(242,217,168,.50) 0%, rgba(217,160,91,.20) 42%, rgba(217,160,91,0) 72%),
+    linear-gradient(180deg, rgba(138,106,74,.46) 0%, rgba(111,122,102,.30) 38%, rgba(4,14,15,.60) 100%);
+}
+#end.dead::before{
+  background:
+    radial-gradient(circle 180px at 76% 20%, rgba(107,32,24,.60) 0%, rgba(107,32,24,.10) 60%, rgba(107,32,24,0) 100%),
+    linear-gradient(180deg, rgba(4,14,15,.80) 0%, rgba(4,14,15,.93) 100%);
+}
+
+#end .card{position:relative;text-align:center;max-width:min(680px,84vw);padding:0 24px}
+
+#end .kicker{
+  font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;
+  margin-bottom:26px;
+}
+/* The win wash lands at roughly L* 36 where the type sits — a MID tone, not a
+   light one, so dark text fails as badly as the muted greens did. Everything
+   on this screen goes warm and light with a shadow under it, which is the
+   only pairing that holds against a ground that moves. */
+#end.won  .kicker{color:#F0DCB4;text-shadow:0 1px 12px rgba(40,26,12,.85)}
+#end.dead .kicker{color:#B5623A}
+
+#end h1{
+  margin:0;font-weight:400;font-size:clamp(30px,4.6vw,52px);line-height:1.18;
+  font-family:Georgia,'Iowan Old Style','Palatino Linotype',serif;
+  text-wrap:balance;
+}
+#end.won  h1{color:#FBF3DE;text-shadow:0 2px 20px rgba(62,42,22,.55)}
+#end.dead h1{color:#C9B8A8;text-shadow:0 2px 24px rgba(0,0,0,.9)}
+
+#end .sub{
+  margin-top:18px;font-size:clamp(15px,1.7vw,20px);line-height:1.55;font-style:italic;
+  font-family:Georgia,'Iowan Old Style','Palatino Linotype',serif;
+}
+#end.won  .sub{color:#F2E7CC;text-shadow:0 1px 12px rgba(40,26,12,.85)}
+#end.dead .sub{color:#8A6A5A}
+
+/* What you were carrying. On the loss this is the whole point of the screen. */
+#end .slots{display:flex;justify-content:center;gap:11px;margin-top:34px}
+#end .slot{
+  width:40px;height:40px;border-radius:3px;
+  display:flex;align-items:center;justify-content:center;
+  border:1px solid #2A4A48;
+}
+#end.won .slot{border-color:rgba(246,220,166,.30)}
+#end.won .slot.has{border-color:#F6DCA6}
+#end.won .slot.has i{background:#F6DCA6}
+#end.won .slot.has i.wheel,#end.won .slot.has i.harness{background:none;border-color:#F6DCA6}
+#end .slot.has{border-color:var(--ember)}
+#end .slot i{display:block;background:#2A4A48}
+#end .slot.has i{background:var(--ember)}
+#end .slot i.axle{width:18px;height:3px}
+#end .slot i.wheel{width:17px;height:17px;border-radius:50%;background:none;border:4px solid #2A4A48}
+#end .slot.has i.wheel{border-color:var(--ember);background:none}
+/* A flat strap loop, not a second ring. At 40px a 16x20 rounded rect and a
+   16x16 circle are the same glyph, and the whole point of three marks is that
+   you read them apart without a label. */
+#end .slot i.harness{width:22px;height:11px;border-radius:6px;background:none;border:3px solid #2A4A48}
+#end .slot.has i.harness{border-color:var(--ember);background:none}
+
+#end .tally{
+  margin-top:20px;font-family:var(--mono);font-size:11px;letter-spacing:.16em;
+  text-transform:uppercase;
+}
+#end.won  .tally{color:#E0CFA8;text-shadow:0 1px 10px rgba(40,26,12,.8)}
+#end.dead .tally{color:#5D7A77}
+
+#end .again{
+  margin-top:40px;display:inline-flex;align-items:center;gap:11px;
+  font-size:14px;
+}
+#end.won  .again{color:#F2E7CC;text-shadow:0 1px 10px rgba(40,26,12,.8)}
+#end.dead .again{color:var(--ink)}
+#end.won  .again b{border-color:#E8C27A;color:#F6DCA6}
+#end .again b{
+  font-family:var(--mono);font-size:11px;padding:3px 9px;border-radius:3px;
+  border:1px solid var(--ember);color:var(--ember);
+}
+
+@media (prefers-reduced-motion:reduce){ #end{transition:none} }
