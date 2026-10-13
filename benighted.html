@@ -68,34 +68,31 @@ nav{
 /* ---------- the game ----------
    The hero's WIDTH, not its proportions: this is the main image of the page,
    sitting under the title block, so it is shaped like a game rather than like
-   a letterbox strip. 16:9 at the full content column. */
+   a letterbox strip. 16:9 at the full content column.
+
+   IT IS A PICTURE, NOT THE GAME. It used to be a live iframe, and a live
+   iframe is a second rAF loop painting five full-screen canvases for the
+   entire time anybody is reading the other fifteen thousand pixels of this
+   document. It made the scrolling worse and the game worse. So this is a
+   poster of the title screen at 2x, and it links to play.html, which runs
+   the game and nothing else. */
 .game{
-  position:relative; aspect-ratio:16/9; width:100%;
+  position:relative; display:block; width:100%;
   background:#040E0F; overflow:hidden;
   border:1px solid var(--rule);
+  text-decoration:none;
 }
-.game iframe{
-  position:absolute; inset:0; width:100%; height:100%; border:0;
-  /* IDLE UNTIL ASKED. No pointer events means the title screen cannot be
-     clicked, cannot take the keyboard, and its lantern does not even follow
-     the cursor — it sits at its resting position while you scroll past, which
-     is the whole idea. It costs nothing: the game is paused by not being
-     touched, because nothing in it runs on a clock. */
-  pointer-events:none;
-}
-.game.live iframe{ pointer-events:auto; }
-.game:fullscreen{ aspect-ratio:auto; width:100vw; height:100vh; border:0; }
-
+.game img{ display:block; width:100%; height:auto; }
 .game__play{
   position:absolute; left:50%; bottom:clamp(14px,4%,38px); transform:translateX(-50%);
   font-family:var(--disp); font-weight:400;
   font-size:clamp(12px,1.05vw,18px); letter-spacing:.2em; text-transform:uppercase;
-  color:#F6DCA6; background:rgba(4,14,15,.72); cursor:pointer;
+  color:#F6DCA6; background:rgba(4,14,15,.72);
   border:1px solid var(--ember); padding:.85em 1.9em;
   transition:background .18s ease,color .18s ease;
 }
-.game__play:hover{ background:var(--ember); color:#07100F; }
-.game.live .game__play{ display:none; }
+.game:hover .game__play,
+.game:focus-visible .game__play{ background:var(--ember); color:#07100F; }
 .game__note{
   margin:14px 0 0; font-family:var(--mono); font-size:12px;
   letter-spacing:.14em; text-transform:uppercase; color:var(--faint);
@@ -193,13 +190,12 @@ footer h2{
   <img class="frame first" src="benighted-case/img/01-hero.jpg" width="6625" height="1960"
        alt="Benighted — a single-player horror survival game.">
 
-  <div class="game" id="game">
-    <iframe src="benighted/variants/j-masks/index.html"
-            title="Benighted — playable" tabindex="-1" scrolling="no"
-            allow="fullscreen; autoplay"></iframe>
-    <button class="game__play" id="play" type="button">Play fullscreen</button>
-  </div>
-  <p class="game__note">Plays in your browser &middot; keyboard &middot; Esc to leave fullscreen</p>
+  <a class="game" href="play.html" aria-label="Play Benighted">
+    <img src="benighted-case/img/00-poster.jpg" width="3312" height="1862"
+         alt="Benighted's title screen: a lantern-lit churchyard at night.">
+    <span class="game__play">Play</span>
+  </a>
+  <p class="game__note">Opens the game on its own page &middot; keyboard &middot; about 12MB</p>
 
   <!-- 1 · SKIM LAYER, in four parts -->
   <img class="frame" src="benighted-case/img/02-skim.jpg" loading="lazy" alt="The skim layer: role, timeframe, tools, and the numbers.">
@@ -310,47 +306,7 @@ footer h2{
 
 </main>
 
-<script>
-/* THE GAME IS A POSTER UNTIL YOU ASK FOR IT.
-
-   The iframe loads with pointer-events off, so the title screen sits at its
-   resting state while the page is scrolled past it: nothing to click into by
-   accident, no keyboard stolen from the page, and no audio, because the game
-   only starts its context on a gesture it never receives.
-
-   Play puts the wrapper fullscreen and hands the iframe the keyboard. Leaving
-   fullscreen puts it back to a poster and reloads it, so the next person to
-   scroll past finds the title screen rather than somebody else's half-played
-   afternoon. */
-(function () {
-  var wrap = document.getElementById('game');
-  var play = document.getElementById('play');
-  var frame = wrap.querySelector('iframe');
-  var src = frame.getAttribute('src');
-
-  play.addEventListener('click', function () {
-    var go = wrap.requestFullscreen || wrap.webkitRequestFullscreen;
-    if (go) {
-      var r = go.call(wrap);
-      if (r && r.then) r.then(live, live); else live();
-    } else {
-      live();                       /* no fullscreen API: still let them play */
-    }
-  });
-
-  function live() {
-    wrap.classList.add('live');
-    frame.focus();
-  }
-
-  function check() {
-    if (document.fullscreenElement || document.webkitFullscreenElement) return;
-    wrap.classList.remove('live');
-    frame.setAttribute('src', src);          /* back to an idle title screen */
-  }
-  document.addEventListener('fullscreenchange', check);
-  document.addEventListener('webkitfullscreenchange', check);
-})();
-</script>
+<!-- No script on this page any more: the game is a link now, and the only
+     thing that was scripted was taking an embedded one fullscreen. -->
 </body>
 </html>
