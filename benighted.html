@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Benighted — Loudon Nokes</title>
+<meta name="description" content="A single-player horror survival game: three days of light, five masked villagers, and one of them is not a person.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<!-- The game's own typefaces, for the parts of this page that are not Loudon's
+     exported frames: the player, the footer, the button on the game. Same
+     Adobe kit the game loads, which serves to this domain. -->
+<link rel="stylesheet" href="https://use.typekit.net/lpg6kig.css">
+<style>
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+:root{
+  --bg:#07100F;              /* Loudon's canvas colour for the whole case study */
+  --ink:#CFDEDB;
+  --dim:#8FA8A4;
+  --faint:#5D7A77;
+  --rule:#17302F;
+  --ember:#D9A05B;
+  --disp:"masonic-lodge",Georgia,serif;
+  --text:"alverata-irregular",Georgia,serif;
+  --mono:ui-monospace,"SF Mono",Menlo,monospace;
+
+  /* HIS FRAME. The exports are cropped to their content, 6626px wide, and the
+     frame they sat in is 1920 with 133.33 of padding each side. Expressed as a
+     percentage so the proportion survives every window width: 133.33/1920. */
+  --frame:1920px;
+  --pad:6.944%;
+}
+
+html{ scroll-behavior:smooth; }
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:var(--text);
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ---------- nav: the site's own, in this project's colours ---------- */
+nav{
+  position:fixed; top:0; left:0; right:0; z-index:100;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 48px; height:76px;
+  background:rgba(7,16,15,.86);
+  backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px);
+  border-bottom:1px solid var(--rule);
+}
+.nav-logo{ display:flex; align-items:center; text-decoration:none; flex-shrink:0; }
+.nav-logo svg{ height:28px; width:auto; display:block; }
+.nav-back{
+  display:flex; align-items:center; gap:10px;
+  font-family:'Syne',sans-serif; font-size:.63rem;
+  letter-spacing:.22em; text-transform:uppercase;
+  color:var(--faint); text-decoration:none; transition:color .15s;
+}
+.nav-back:hover{ color:var(--ink); }
+.nav-back-arrow{ display:inline-block; transition:transform .15s; }
+.nav-back:hover .nav-back-arrow{ transform:translateX(-3px); }
+
+/* ---------- the column everything lives in ---------- */
+.page{ max-width:var(--frame); margin:0 auto; padding:0 var(--pad); }
+.frame{ display:block; width:100%; height:auto; }
+.first{ padding-top:124px; }          /* clears the fixed nav */
+
+/* ---------- the game ----------
+   The hero's WIDTH, not its proportions: this is the main image of the page,
+   sitting under the title block, so it is shaped like a game rather than like
+   a letterbox strip. 16:9 at the full content column. */
+.game{
+  position:relative; aspect-ratio:16/9; width:100%;
+  background:#040E0F; overflow:hidden;
+  border:1px solid var(--rule);
+}
+.game iframe{
+  position:absolute; inset:0; width:100%; height:100%; border:0;
+  /* IDLE UNTIL ASKED. No pointer events means the title screen cannot be
+     clicked, cannot take the keyboard, and its lantern does not even follow
+     the cursor — it sits at its resting position while you scroll past, which
+     is the whole idea. It costs nothing: the game is paused by not being
+     touched, because nothing in it runs on a clock. */
+  pointer-events:none;
+}
+.game.live iframe{ pointer-events:auto; }
+.game:fullscreen{ aspect-ratio:auto; width:100vw; height:100vh; border:0; }
+
+.game__play{
+  position:absolute; left:50%; bottom:clamp(14px,4%,38px); transform:translateX(-50%);
+  font-family:var(--disp); font-weight:400;
+  font-size:clamp(12px,1.05vw,18px); letter-spacing:.2em; text-transform:uppercase;
+  color:#F6DCA6; background:rgba(4,14,15,.72); cursor:pointer;
+  border:1px solid var(--ember); padding:.85em 1.9em;
+  transition:background .18s ease,color .18s ease;
+}
+.game__play:hover{ background:var(--ember); color:#07100F; }
+.game.live .game__play{ display:none; }
+.game__note{
+  margin:14px 0 0; font-family:var(--mono); font-size:12px;
+  letter-spacing:.14em; text-transform:uppercase; color:var(--faint);
+  text-align:center;
+}
+
+/* ---------- the soundtrack ---------- */
+.tracks{ padding:clamp(60px,7vw,130px) 0 clamp(50px,6vw,110px); }
+.tracks__h{
+  font-family:var(--disp); font-weight:400;
+  font-size:clamp(28px,3.4vw,64px); line-height:1;
+  letter-spacing:.06em; color:var(--ember); margin-bottom:18px;
+}
+.tracks__lede{
+  font-size:clamp(15px,1.15vw,21px); line-height:1.6; color:var(--dim);
+  max-width:62ch; margin-bottom:clamp(28px,3vw,52px);
+}
+.track{ border-top:1px solid var(--rule); padding:clamp(20px,2vw,34px) 0; }
+.track:last-of-type{ border-bottom:1px solid var(--rule); }
+.track__top{
+  display:flex; align-items:baseline; justify-content:space-between;
+  gap:20px; margin-bottom:16px; flex-wrap:wrap;
+}
+.track__name{
+  font-family:var(--disp); font-weight:400;
+  font-size:clamp(16px,1.5vw,27px); letter-spacing:.1em; text-transform:uppercase;
+  color:var(--ink);
+}
+.track__meta{ font-family:var(--mono); font-size:12.5px; color:var(--faint); letter-spacing:.08em; }
+.track audio{ width:100%; height:38px; display:block; filter:invert(92%) hue-rotate(170deg) saturate(.5); }
+.track__what{ font-size:15px; line-height:1.6; color:var(--dim); margin-top:14px; max-width:68ch; }
+
+/* ---------- the animation ---------- */
+.anim{ padding:clamp(50px,6vw,110px) 0 clamp(30px,4vw,70px); }
+.anim__h{
+  font-family:var(--disp); font-weight:400;
+  font-size:clamp(22px,2.4vw,44px); letter-spacing:.07em; color:var(--ember);
+  margin-bottom:16px;
+}
+.anim__lede{ font-size:clamp(14px,1.05vw,19px); line-height:1.6; color:var(--dim); max-width:62ch; margin-bottom:28px; }
+.anim__stage{ width:100%; border:1px solid var(--rule); background:#040E0F; }
+.anim__stage img{ display:block; width:100%; height:auto; }
+
+/* ---------- credits ---------- */
+footer{
+  margin-top:clamp(60px,7vw,120px);
+  border-top:1px solid var(--rule);
+  padding:clamp(40px,4.5vw,80px) 0 clamp(50px,5vw,90px);
+  font-size:14px; line-height:1.75; color:var(--faint);
+}
+footer h2{
+  font-family:var(--disp); font-weight:400; font-size:12px;
+  letter-spacing:.26em; text-transform:uppercase; color:var(--ember);
+  margin-bottom:22px;
+}
+.credits{ display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:30px 48px; }
+.credits h3{
+  font-family:var(--mono); font-size:11px; font-weight:400;
+  letter-spacing:.18em; text-transform:uppercase; color:var(--dim);
+  margin-bottom:8px;
+}
+.credits p{ margin:0 0 6px; }
+.credits a{ color:var(--dim); text-decoration:none; border-bottom:1px solid var(--rule); }
+.credits a:hover{ color:var(--ember); border-bottom-color:var(--ember); }
+.colophon{
+  margin-top:clamp(34px,3.5vw,60px); padding-top:24px; border-top:1px solid var(--rule);
+  display:flex; justify-content:space-between; gap:24px; flex-wrap:wrap;
+  font-family:var(--mono); font-size:11.5px; letter-spacing:.1em; color:#3F5D5A;
+}
+
+@media (max-width:720px){
+  nav{ padding:0 22px; height:64px; }
+  .first{ padding-top:92px; }
+}
+@media (prefers-reduced-motion:reduce){
+  html{ scroll-behavior:auto; }
+  .game__play,.nav-back,.nav-back-arrow{ transition:none; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo" aria-label="Loudon Nokes — home">
+    <svg width="133" height="216" viewBox="0 0 133 216" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M40 27.4277V121.629H45.9307V85.2197H132.139V215.439L92.1377 188.011V93.8105H85.9307V130.22H0V0L40 27.4277Z" fill="#D9A05B"/>
+    </svg>
+  </a>
+  <a href="index.html" class="nav-back"><span class="nav-back-arrow">&larr;</span> All Work</a>
+</nav>
+
+<main class="page">
+
+  <!-- 0 · HERO, and the game directly beneath it at the same size -->
+  <img class="frame first" src="benighted-case/img/01-hero.png" width="6625" height="1960"
+       alt="Benighted — a single-player horror survival game.">
+
+  <div class="game" id="game">
+    <iframe src="benighted/variants/j-masks/index.html"
+            title="Benighted — playable" tabindex="-1" scrolling="no"
+            allow="fullscreen; autoplay"></iframe>
+    <button class="game__play" id="play" type="button">Play fullscreen</button>
+  </div>
+  <p class="game__note">Plays in your browser &middot; keyboard &middot; Esc to leave fullscreen</p>
+
+  <!-- 1 · SKIM LAYER, in four parts -->
+  <img class="frame" src="benighted-case/img/02-skim.png" loading="lazy" alt="The skim layer: role, timeframe, tools, and the numbers.">
+  <img class="frame" src="benighted-case/img/03-characters.png" loading="lazy" alt="Meet the characters: the player, the vampire, the villagers.">
+  <img class="frame" src="benighted-case/img/04-daylight.png" loading="lazy" alt="How daylight works, across the well, the church and the graveyard.">
+  <img class="frame" src="benighted-case/img/05-dialogue.png" loading="lazy" alt="How dialogue works: ask, check, tell.">
+
+  <!-- 2 · THE PROBLEM -->
+  <img class="frame" src="benighted-case/img/06-problem.png" loading="lazy" alt="The problem.">
+  <!-- 3 · TWELVE ANSWERS -->
+  <img class="frame" src="benighted-case/img/07-answers.png" loading="lazy" alt="Twelve answers to one complaint.">
+  <!-- 4 · THE KILL -->
+  <img class="frame" src="benighted-case/img/08-kill.png" loading="lazy" alt="The one I killed: the 3D direction.">
+  <!-- 5 · THE SYSTEMS -->
+  <img class="frame" src="benighted-case/img/09-systems.png" loading="lazy" alt="The systems.">
+  <!-- 6 · THE CRAFT -->
+  <img class="frame" src="benighted-case/img/10-craft.png" loading="lazy" alt="The craft.">
+
+  <!-- THE SOUNDTRACK, directly after the craft -->
+  <section class="tracks" id="soundtrack">
+    <h2 class="tracks__h">The soundtrack</h2>
+    <p class="tracks__lede">Both tracks were written and recorded for the game, and both are
+       running at once the whole time you play. The mix is the game: the bed is always
+       there, and the tension layer sits at silence underneath it until the light starts
+       to go or the thing reaches the near plane.</p>
+
+    <figure class="track">
+      <div class="track__top">
+        <figcaption class="track__name">Benighted &mdash; the bed</figcaption>
+        <span class="track__meta">2:35 &middot; loops</span>
+      </div>
+      <audio controls preload="none" src="benighted/audio/benighted-song.m4a"></audio>
+      <p class="track__what">Under everything, from the title screen to the last frame. It ducks
+         to almost nothing when the ambience drops, which is the game's tell that something
+         has changed rather than a sting telling you so.</p>
+    </figure>
+
+    <figure class="track">
+      <div class="track__top">
+        <figcaption class="track__name">Benighted &mdash; the threat layer</figcaption>
+        <span class="track__meta">0:15 &middot; seamless loop</span>
+      </div>
+      <audio controls preload="none" src="benighted/audio/benighted-threat.m4a"></audio>
+      <p class="track__what">Never started and never stopped &mdash; it has been playing silently
+         since the title screen and is only ever faded up, so the player never hears the game
+         make a decision. It rises through the last third of a day and goes straight to full
+         when the thing is at the edge of the light.</p>
+    </figure>
+  </section>
+
+  <!-- 7 · PLAYTESTING -->
+  <img class="frame" src="benighted-case/img/11-playtesting.png" loading="lazy" alt="What playtesting changed.">
+  <!-- 7.5 · THE DESIGN SYSTEM -->
+  <img class="frame" src="benighted-case/img/12-design-system.png" loading="lazy" alt="The design system.">
+
+  <!-- THE ANIMATION, directly after the design system -->
+  <section class="anim" id="animation">
+    <h2 class="anim__h">The system, moving</h2>
+    <p class="anim__lede">The same parts, in motion. Built in Figma and exported as an animated
+       SVG, so what is on this page is vector the whole way down rather than a recording of it.</p>
+    <div class="anim__stage">
+      <img src="benighted-case/img/14-animation.svg" loading="lazy" width="1920" height="1080"
+           alt="An animated sequence of the thresher and the game's UI.">
+    </div>
+  </section>
+
+  <!-- 8 · WHAT I'D DO DIFFERENTLY -->
+  <img class="frame" src="benighted-case/img/13-differently.png" loading="lazy" alt="What I would do differently.">
+
+  <!-- ---------------- CREDITS ---------------- -->
+  <footer>
+    <h2>Credits</h2>
+    <div class="credits">
+      <div>
+        <h3>Made by</h3>
+        <p>Written, designed, drawn, composed and built by Loudon Nokes.</p>
+      </div>
+      <div>
+        <h3>Type</h3>
+        <p>Masonic Lodge &middot; Alverata Irregular</p>
+      </div>
+      <div>
+        <h3>Built with</h3>
+        <p>HTML, CSS and JavaScript. No engine, no framework, no build step.</p>
+      </div>
+      <div>
+        <h3>Reference imagery</h3>
+        <p>173 photographs from Wikimedia Commons &mdash; 78 public domain, 95 under
+           CC&nbsp;BY or CC&nbsp;BY-SA.
+           <a href="benighted-case/credits.html">Full attribution</a>.</p>
+      </div>
+      <div>
+        <h3>3D kits</h3>
+        <p>Used in the scrapped 3D direction only. Kenney, KayKit and Quaternius,
+           under CC0 and their own standard licences.
+           <a href="benighted-case/credits.html">Listed in full</a>.</p>
+      </div>
+      <div>
+        <h3>Thanks</h3>
+        <p>To everyone who played a build and said the true thing instead of the kind one.</p>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>Benighted &mdash; 2026</span>
+      <span>&copy; Loudon Nokes</span>
+    </div>
+  </footer>
+
+</main>
+
+<script>
+/* THE GAME IS A POSTER UNTIL YOU ASK FOR IT.
+
+   The iframe loads with pointer-events off, so the title screen sits at its
+   resting state while the page is scrolled past it: nothing to click into by
+   accident, no keyboard stolen from the page, and no audio, because the game
+   only starts its context on a gesture it never receives.
+
+   Play puts the wrapper fullscreen and hands the iframe the keyboard. Leaving
+   fullscreen puts it back to a poster and reloads it, so the next person to
+   scroll past finds the title screen rather than somebody else's half-played
+   afternoon. */
+(function () {
+  var wrap = document.getElementById('game');
+  var play = document.getElementById('play');
+  var frame = wrap.querySelector('iframe');
+  var src = frame.getAttribute('src');
+
+  play.addEventListener('click', function () {
+    var go = wrap.requestFullscreen || wrap.webkitRequestFullscreen;
+    if (go) {
+      var r = go.call(wrap);
+      if (r && r.then) r.then(live, live); else live();
+    } else {
+      live();                       /* no fullscreen API: still let them play */
+    }
+  });
+
+  function live() {
+    wrap.classList.add('live');
+    frame.focus();
+  }
+
+  function check() {
+    if (document.fullscreenElement || document.webkitFullscreenElement) return;
+    wrap.classList.remove('live');
+    frame.setAttribute('src', src);          /* back to an idle title screen */
+  }
+  document.addEventListener('fullscreenchange', check);
+  document.addEventListener('webkitfullscreenchange', check);
+})();
+</script>
+</body>
+</html>
