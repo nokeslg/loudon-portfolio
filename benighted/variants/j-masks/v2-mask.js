@@ -20,6 +20,7 @@
    PLACING THEM IN THE WORLD
 -------------------------------------------------------------------------- */
 function buildMasks(sceneId) {
+  _villagers = null;   /* these are about to be replaced */
   /* THE FORE LAYER, NOT THE NEAR ONE.
 
      A child of a layer inherits that layer's parallax, and near moves at
@@ -84,6 +85,7 @@ const VILLAGER_SCALE =
   parseFloat(new URLSearchParams(location.search).get('vs')) || 1.70;
 
 let _footKey = '', _foot = 0;
+let _villagers = null, _villagerKey = null;   /* re-queried when the scene changes */
 
 function paintMasks(S) {
   const h = View.sceneH * actorH() * VILLAGER_SCALE;
@@ -103,7 +105,11 @@ function paintMasks(S) {
   }
   const foot = _foot;
 
-  document.querySelectorAll('#stage .villager').forEach(el => {
+  if (!_villagers || _villagerKey !== S.at) {
+    _villagers = document.querySelectorAll('#stage .villager');
+    _villagerKey = S.at;
+  }
+  _villagers.forEach(el => {
     /* Height only. Every figure is drawn at its own aspect and trimmed to its
        own bounding box, so forcing a width would squash whoever is widest. */
     /* Written only when they change: the same string assigned every frame is

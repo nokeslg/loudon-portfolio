@@ -100,6 +100,8 @@ function plateImage(url) {
    re-rasterised two full-viewport gradients and re-transformed six
    scene-sized textures whether or not anything had changed. */
 let _platesDirty = true;
+let _plateCanvases = null;   /* the five, looked up once rather than every frame */
+let _lyrs = null;            /* and the layer hosts, same reason */
 let _lastCam = null;
 let _lastLight = '';
 
@@ -144,6 +146,11 @@ function buildScene(id) {
      is exactly what it was: anything standing on a plane draws over that
      plane's art and under the next plane in front of it. */
   const live = LAYERS_V2.filter(l => sc[l.id] !== false);
+  /* The cached canvas list belongs to the stage that is about to be thrown
+     away. Same trap the actor's size cache fell into: innerHTML makes new
+     elements, and a cache keyed on anything but identity keeps pointing at
+     the old ones. */
+  _plateCanvases = null; _lyrs = null;
   stage.innerHTML = live.map((l, i) =>
     `<canvas class="plate" data-id="${l.id}" data-depth="${l.depth}"
              style="z-index:${i * 10}"></canvas>
@@ -267,7 +274,9 @@ function drawPlates() {
   const sc = SCENES[S.at];
   const R = RENDER_SCALE;
 
-  document.querySelectorAll('#stage canvas.plate').forEach(cv => {
+  if (!_plateCanvases) _plateCanvases = document.querySelectorAll('#stage canvas.plate');
+
+  _plateCanvases.forEach(cv => {
     const id = cv.dataset.id;
     const spec = LAYERS_V2.find(l => l.id === id);
     const ctx = cv.getContext('2d');
@@ -291,7 +300,40 @@ function drawPlates() {
       ctx.fillRect(0, 0, View.vw, View.vh);
     }
 
-    if (rec.ok) ctx.drawImage(rec.img, x, View.top, View.sceneW, View.sceneH);
+    if (!rec.ok) return;
+
+    /* DRAW THE SLICE YOU CAN SEE, NOT THE WHOLE PLATE.
+
+       This was one drawImage of the entire 3600x1200 plate scaled to the full
+       scene width, with the canvas only as wide as the viewport — so on a 3:1
+       scene about two thirds of every blit was scaled, sampled and then thrown
+       away by the clip, five times a frame, every frame the camera moves. The
+       visible slice is computed from the camera and passed as the source
+       rectangle instead.
+
+       Both axes: the church renders 1.45x taller than the viewport to buy pan
+       room, so a third of its height is off-screen too.
+
+       A pixel of margin each side, because the source rectangle is fractional
+       and a sampler that rounds inward would leave a hairline of background
+       down the edge of the screen. */
+    const iw = rec.img.naturalWidth, ih = rec.img.naturalHeight;
+    if (!iw || !ih) return;
+    const kx = View.sceneW / iw, ky = View.sceneH / ih;   // dest px per source px
+
+    let dx0 = Math.max(0, x), dx1 = Math.min(View.vw, x + View.sceneW);
+    let dy0 = Math.max(0, View.top), dy1 = Math.min(View.vh, View.top + View.sceneH);
+    if (dx1 <= dx0 || dy1 <= dy0) return;                 // entirely off screen
+
+    let sx0 = (dx0 - x) / kx - 1, sx1 = (dx1 - x) / kx + 1;
+    let sy0 = (dy0 - View.top) / ky - 1, sy1 = (dy1 - View.top) / ky + 1;
+    sx0 = Math.max(0, sx0); sx1 = Math.min(iw, sx1);
+    sy0 = Math.max(0, sy0); sy1 = Math.min(ih, sy1);
+    if (sx1 <= sx0 || sy1 <= sy0) return;
+
+    ctx.drawImage(rec.img,
+      sx0, sy0, sx1 - sx0, sy1 - sy0,
+      x + sx0 * kx, View.top + sy0 * ky, (sx1 - sx0) * kx, (sy1 - sy0) * ky);
   });
 }
 
@@ -319,10 +361,16 @@ function actorH() { return (SCENES[S.at] || {}).actorH || V2.ACTOR_H; }
    the walker and the villagers together, so they cannot disagree.
 
    ?sink=6 to audition. 0 is the shipped behaviour and changes nothing. */
-function sink() {
+const _sink = (() => {
   const q = parseFloat(new URLSearchParams(location.search).get('sink'));
   return isNaN(q) ? 0 : q;
-}
+})();
+/* READ ONCE. This parsed the query string on every call, and it is called
+   from paintActor and once per villager inside paintMasks -- three
+   URLSearchParams objects built and parsed per frame, a hundred and eighty a
+   second, for a number that cannot change while the page is open. 2.6us a
+   call, which was half of what paintMasks cost. */
+function sink() { return _sink; }
 
 /* Source-image x -> screen x, given the current camera. */
 function srcToScreen(x) { return x * View.scale - camX; }
@@ -377,7 +425,8 @@ function paintScene(S) {
      that is deliberate here. On an empty element promotion costs nothing and
      keeps the children composited. It was NOT free when these divs were
      scene-sized and carried the artwork — see the long note in v2.css. */
-  document.querySelectorAll('#stage .lyr').forEach(el => {
+  if (!_lyrs) _lyrs = document.querySelectorAll('#stage .lyr');
+  _lyrs.forEach(el => {
     const f = (+el.dataset.depth) / 68;
     el.style.transform = `translate3d(${-camX * f}px,0,0)`;
   });

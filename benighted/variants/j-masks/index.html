@@ -125,8 +125,12 @@
      different answers. `worst` is the slowest frame in the last second,
      because an average of 60 hides the one hitch you can see. */
   let _fn = 0, _fsum = 0, _fworst = 0, _flast = performance.now(), _fps = 0, _fw = 0;
+  /* Only while the readout is actually up. A frame counter that runs forever
+     is a second rAF callback on every frame of a game whose whole problem is
+     how much happens per frame. */
   (function tick(t) {
     requestAnimationFrame(tick);
+    if (!document.body.classList.contains('debug')) { _flast = t; return; }
     const d = t - _flast; _flast = t;
     if (d > 0 && d < 1000) { _fn++; _fsum += d; if (d > _fworst) _fworst = d; }
     if (_fsum >= 1000) { _fps = Math.round(1000 / (_fsum / _fn)); _fw = Math.round(_fworst);
