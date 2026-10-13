@@ -71,43 +71,6 @@ const THREAT_NEAR = num('threat', 0.88);
    and does not need the mix to say so twice. */
 const DUSK_AT = num('dusk', 32);       // light left when it starts to rise
 
-/* FOOTSTEPS.
-
-   Synthesised, not sampled. Three reasons, in order of how much they
-   mattered: a recorded step is one step, and a loop of one step is the most
-   obviously fake sound a game can make; the whole game is 7MB of art and a
-   step library is a tenth of that again for something nobody should
-   consciously hear; and a synthesised one can be varied per footfall, per
-   foot and per scene for free, which is the only thing that stops a repeated
-   noise from turning into a rhythm the player starts listening to.
-
-   Each step is a band-passed noise burst (the scuff) over a very short
-   low sine (the weight). Everything about both is randomised a little, and
-   the two feet are deliberately not identical — real gaits are asymmetric,
-   and a perfectly even step is the other way a synthesised walk gives
-   itself away.
-
-   STRIDE IS THE ANIMATION'S STRIDE. ANIM.STRIDE, read straight off v2-game.js
-   rather than copied, because two constants that have to agree will not. The
-   step fires on the frame the bob reaches the bottom of its arc, so the sound
-   is ON the contact rather than near it — which is the whole of whether a
-   footstep sounds like the character's foot or like a sound effect playing
-   over him. ?stride= moves both at once. */
-const STEP_GAIN = num('steps', 0.085);   // against a bed at 0.55. faint.
-const STRIDE    = num('stride', typeof ANIM !== 'undefined' ? ANIM.STRIDE : 330);
-
-/* Per scene, because the ground is not the same ground. Centre frequency of
-   the scuff, how fast it dies, and how much weight is under it. The church
-   is flagstone and gravel, the graveyard is wet grass over earth, the well
-   is the packed dirt of a path people use every day. The differences are
-   small on purpose: this should register as "somewhere else", not as a
-   different sound effect. */
-const GROUND = {
-  church:    { hz: 1650, decay: 0.055, body: 0.55 },
-  graveyard: { hz:  950, decay: 0.095, body: 0.30 },
-  well:      { hz: 1250, decay: 0.070, body: 0.45 },
-};
-const GROUND_DEFAULT = GROUND.well;
 
 const RAMP = 1.1;                    // seconds; the dusk rise is tracked live
 const DUCK = 1.6;                    // seconds, the bed dropping out
@@ -117,7 +80,7 @@ const KEY = 'benighted.muted';
 
 let ctx = null, bedGain = null, threatGain = null, master = null;
 let bedEl = null, threatSrc = null;
-let footBus = null, noiseBuf = null, footIdx = null, footSide = 1, footN = 0;
+let bedSrc = null, outTap = null;
 let started = false, ready = false;
 let muted = false;
 try { muted = localStorage.getItem(KEY) === '1'; } catch (e) {}
@@ -147,6 +110,13 @@ async function start() {
   master.gain.value = muted ? 0 : 1;
   master.connect(ctx.destination);
 
+  /* A tap on the way out. Gains and currentTime tell you what the graph
+     INTENDS; this is the only thing that tells you what is leaving it, which
+     is the exact distinction the missing song lived in for a month. */
+  outTap = ctx.createAnalyser();
+  outTap.fftSize = 2048;
+  master.connect(outTap);
+
   bedGain = ctx.createGain();
   bedGain.gain.value = 0;
   bedGain.connect(master);
@@ -155,20 +125,6 @@ async function start() {
   threatGain.gain.value = 0;
   threatGain.connect(master);
 
-  /* Footsteps have their own bus so they can sit UNDER the mute switch and
-     OVER the ambience duck. When the bed drops out for dread, your own steps
-     are what is left in the room, and that is the point of the duck. */
-  footBus = ctx.createGain();
-  footBus.gain.value = STEP_GAIN;
-  footBus.connect(master);
-
-  /* A quarter-second of white noise, made once and re-pointed at by every
-     step. Allocating a buffer per footfall would be 2 a second of garbage
-     for a sound that is already in memory. */
-  const len = Math.floor(ctx.sampleRate * 0.25);
-  noiseBuf = ctx.createBuffer(1, len, ctx.sampleRate);
-  const ch = noiseBuf.getChannelData(0);
-  for (let i = 0; i < len; i++) ch[i] = Math.random() * 2 - 1;
 
   /* The bed: streamed. */
   bedEl = new Audio(SRC.bed);
@@ -176,7 +132,19 @@ async function start() {
   bedEl.crossOrigin = 'anonymous';
   bedEl.preload = 'auto';
   try {
-    ctx.createMediaElementSource(bedEl).connect(bedGain);
+    /* HOLD THE SOURCE NODE.
+
+       This used to be createMediaElementSource(bedEl).connect(bedGain) with
+       the node thrown away on the same line. The element went on playing and
+       currentTime went on advancing — __mix() reported bedPlaying true and a
+       bed gain of 0.55 the entire time — but a MediaElementAudioSourceNode
+       that nothing in JS references is collectable, and when it is collected
+       the sound stops while every number you can read still looks right.
+
+       threatSrc was always held, which is exactly why the threat layer kept
+       working and the song did not. */
+    bedSrc = ctx.createMediaElementSource(bedEl);
+    bedSrc.connect(bedGain);
     await bedEl.play();
     ramp(bedGain.gain, BED_GAIN, 3.5);     // fade up from silence, not a cut
   } catch (e) { /* no bed; the rest still works */ }
@@ -194,99 +162,6 @@ async function start() {
 
   ready = true;
   apply(true);
-  requestAnimationFrame(footTick);
-}
-
-/* ---------- one footfall ----------
-   Scheduled against ctx.currentTime, not fired "now": every envelope here is
-   shorter than a frame at 60fps, so anything hung off a timer would be
-   audibly uneven. The Web Audio clock does not care what the renderer is
-   doing. */
-function foot() {
-  if (!ready || !ctx || muted) return;
-  const g = GROUND[window.S && S.at] || GROUND_DEFAULT;
-  const t = at() + 0.001;
-  footSide = -footSide;
-  footN++;
-
-  /* The two feet are not the same foot. A few per cent of level and a few
-     per cent of pitch is all it takes; make them identical and the ear hears
-     a loop after about four steps. */
-  const lead  = footSide > 0 ? 1 : 0.86;
-  const decay = g.decay * (0.85 + Math.random() * 0.3);
-
-  const n  = ctx.createBufferSource();
-  n.buffer = noiseBuf;
-  n.playbackRate.value = 0.8 + Math.random() * 0.4;
-
-  const bp = ctx.createBiquadFilter();
-  bp.type = 'bandpass';
-  bp.frequency.value = g.hz * (0.85 + Math.random() * 0.3);
-  bp.Q.value = 0.7;
-
-  /* A second, lower band under the first. One band reads as a hiss; two
-     read as something with mass landing on something with texture. */
-  const lp = ctx.createBiquadFilter();
-  lp.type = 'lowpass';
-  lp.frequency.value = g.hz * 2.4;
-
-  const env = ctx.createGain();
-  env.gain.setValueAtTime(0, t);
-  env.gain.linearRampToValueAtTime(lead, t + 0.004);   // the contact
-  env.gain.exponentialRampToValueAtTime(0.0008, t + decay);
-
-  n.connect(bp); bp.connect(lp); lp.connect(env);
-
-  /* Weight. 60-ish Hz, gone in a twentieth of a second — felt rather than
-     heard, and the first thing to disappear on a laptop speaker, which is
-     fine. It is there for headphones and for the room on presentation day. */
-  const o = ctx.createOscillator();
-  o.type = 'sine';
-  o.frequency.setValueAtTime(78 + Math.random() * 16, t);
-  o.frequency.exponentialRampToValueAtTime(46, t + 0.05);
-  const og = ctx.createGain();
-  og.gain.setValueAtTime(0, t);
-  og.gain.linearRampToValueAtTime(g.body * lead, t + 0.006);
-  og.gain.exponentialRampToValueAtTime(0.0008, t + 0.075);
-  o.connect(og);
-
-  /* A hand's width of stereo, alternating. Enough to feel like two feet,
-     not enough to notice as an effect. Mono where the browser has no panner
-     rather than no sound at all. */
-  let out = footBus;
-  if (ctx.createStereoPanner) {
-    const pan = ctx.createStereoPanner();
-    pan.pan.value = footSide * 0.13;
-    pan.connect(footBus);
-    out = pan;
-  }
-  env.connect(out); og.connect(out);
-
-  n.start(t); n.stop(t + decay + 0.02);
-  o.start(t); o.stop(t + 0.09);
-}
-
-/* Distance, not time, and the SAME distance the bob is drawn from.
-
-   On the absolute count — floor(dist / STRIDE) — not on an accumulator. An
-   accumulator started wherever the player happened to be standing when the
-   audio context woke up, which left the sound a constant fraction of a stride
-   away from the body's lowest point for the whole run. The floor of the real
-   distance cannot drift: the bob is at the bottom of its arc exactly when
-   that integer changes.
-
-   Stop halfway through a stride and the next step waits for you. Walk into
-   the edge of a scene and there are no steps at all, because x is clamped and
-   no distance is covered. Neither of those is special-cased anywhere. */
-function footTick() {
-  requestAnimationFrame(footTick);
-  if (!ready || !window.S || S.over || S.talk) { footIdx = null; return; }
-  const i = Math.floor(S.dist / STRIDE);
-  /* First tick, a new run, or a tab that was in the background: take the
-     count as it is and make no sound. Catching up would fire a burst of
-     footsteps for ground the player watched nothing walk across. */
-  if (footIdx === null || i < footIdx || i - footIdx > 4) { footIdx = i; return; }
-  if (i > footIdx) { footIdx = i; foot(); }
 }
 
 /* ---------- the mix, read off the game state ----------
@@ -365,11 +240,7 @@ addEventListener('DOMContentLoaded', () => {
 });
 
 /* So the capture harness can photograph a scene in silence. */
-window.V2Audio = { start, setMuted, isMuted: () => muted,
-  /* The footstep bus, so the level it actually puts out can be MEASURED with
-     an analyser rather than described. "It sounded faint to me" is not a
-     check, and faint is the entire specification here. */
-  _foot: () => footBus, foot: () => foot() };
+window.V2Audio = { start, setMuted, isMuted: () => muted };
 
 /* A read-only window onto the live graph, so the mix can be asserted on
    rather than listened to. There is no other way to tell from the outside
@@ -385,9 +256,16 @@ window.__mix = () => ({
   bedAt:  bedEl ? +bedEl.currentTime.toFixed(1) : null,
   loopSecs: threatSrc && threatSrc.buffer
     ? +threatSrc.buffer.duration.toFixed(2) : null,
-  steps:  footBus ? +footBus.gain.value.toFixed(3) : null,
-  stepsFired: footN,
-  stride: STRIDE,
+  /* WHAT IS ACTUALLY COMING OUT, as opposed to what the gains say ought to be.
+     Peak sample on the master bus over one analyser frame. A zero here under a
+     bed of 0.55 is the graph lying to you. */
+  out: (() => {
+    if (!outTap) return null;
+    const b = new Float32Array(outTap.fftSize);
+    outTap.getFloatTimeDomainData(b);
+    let p = 0; for (let i = 0; i < b.length; i++) { const v = Math.abs(b[i]); if (v > p) p = v; }
+    return +p.toFixed(4);
+  })(),
 });
 
 })();
