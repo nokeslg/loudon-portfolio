@@ -96,7 +96,7 @@ function paintMasks(S) {
     /* Height only. Every figure is drawn at its own aspect and trimmed to its
        own bounding box, so forcing a width would squash whoever is widest. */
     el.style.height = h + 'px';
-    el.style.bottom = foot + 'px';
+    el.style.bottom = (foot - sink() * View.scale) + 'px';
     /* Out past the lantern a person is a shape, not a face. This is the whole
        "what is just outside the light" idea, and it is one line: fade the mask
        image by distance while the body stays black. */

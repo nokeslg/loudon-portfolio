@@ -292,6 +292,28 @@ function drawPlates() {
    Draw the plate at 3:1, drop the zoom, and you can drop the override too. */
 function actorH() { return (SCENES[S.at] || {}).actorH || V2.ACTOR_H; }
 
+/* HOW FAR INTO THE GROUND EVERYBODY STANDS, in source pixels, positive = down.
+
+   The figures are placed on the ground line and the ground line matches the
+   art: the well's fore plate starts its dark earth band at source row 1105
+   and ground 0.92 puts the line at 1104. They are planted to the pixel, and
+   they still read as floating, because the band is a flat silhouette and a
+   figure whose feet stop exactly at its top edge looks like it is standing
+   BEHIND the band rather than on it. A few pixels of overlap is what sells
+   contact in a layered scene.
+
+   This moves the people, not the plate. Moving the plate would take the well,
+   the fence, the mill and the crates with it and desync the art from the
+   coordinates the game reaches for them at; the figures are the only thing
+   that looks wrong, so the figures are the only thing that moves. Applied to
+   the walker and the villagers together, so they cannot disagree.
+
+   ?sink=6 to audition. 0 is the shipped behaviour and changes nothing. */
+function sink() {
+  const q = parseFloat(new URLSearchParams(location.search).get('sink'));
+  return isNaN(q) ? 0 : q;
+}
+
 /* Source-image x -> screen x, given the current camera. */
 function srcToScreen(x) { return x * View.scale - camX; }
 

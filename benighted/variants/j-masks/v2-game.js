@@ -316,7 +316,7 @@ function paintActor(S) {
   el.style.width  = (h * ACTOR_ASPECT) + 'px';   // drawn walker is 0.695, placeholder was 0.455
   el.style.height = h + 'px';
   el.style.left   = (S.x * View.scale) + 'px';
-  el.style.top    = (View.groundY - View.top - h + bob) + 'px';
+  el.style.top    = (View.groundY - View.top - h + bob + sink() * View.scale) + 'px';
   /* Lean is applied to the whole figure now rather than to an inner <g>.
      Pivot at the feet, so he rocks over his own footing instead of sliding. */
   el.style.transformOrigin = '50% 100%';

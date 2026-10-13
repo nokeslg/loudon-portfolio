@@ -120,13 +120,36 @@ const V2 = {
   HOLD_PULL: 0.52,      // how far the light comes in at a full hold
 };
 
-/* --- THREE SCENES, IN A LINE --------------------------------------------- */
+/* --- THREE SCENES, IN A LINE ---------------------------------------------
+
+   GROUND IS MEASURED OFF THE ART, NOT CHOSEN.
+
+   Every fore plate is 1200 tall and paints its earth as a band with a flat
+   top edge. That edge is the ground, and the only correct value for `ground`
+   is the row it starts on, divided by 1200. They were 0.93 / 0.92 / 0.92 --
+   round numbers somebody typed -- and each was wrong by a few pixels, in a
+   different direction:
+
+     church     line 1116, earth 1112   figures 4px INTO the ground
+     well       line 1104, earth 1108   figures 4px ABOVE it
+     graveyard  line 1104, earth 1102   figures 2px into it
+
+   Two to four source pixels, which is two to four on screen. Nothing you
+   would find by looking for it, and the reason the villagers read as not
+   quite standing on anything: at VILLAGER_SCALE 1.70 the eye has a big
+   silhouette to judge the contact point from, and it is a contact point the
+   eye is extremely good at.
+
+   Measured per column across all three plates: the edge is flat to within a
+   pixel for 98% of the well and the graveyard and 76% of the church, so one
+   number per scene is the right shape for this.
+-------------------------------------------------------------------------- */
 const SCENES = {
 
   /* HOME, SHELTER, AND THE FINISH LINE. Everything passes through here. */
   church: {
     name: 'The Church',
-    aspect: 2, zoom: 1.45, ground: 0.93,
+    aspect: 2, zoom: 1.45, ground: 0.9267,   /* row 1112: see the note below */
     actorH: 0.093,
     ridge: false,
     shelter: true,
@@ -169,7 +192,7 @@ const SCENES = {
   /* WEST. The end of the line, and where two of the three pieces ended up. */
   well: {
     name: 'The Dry Well',
-    aspect: 3, zoom: 1, ground: 0.92,
+    aspect: 3, zoom: 1, ground: 0.9233,       /* row 1108 */
     ridge: false,
     art: '../../art/locations/well/',
     blurb: 'No water in it for a long time. The bucket rope still runs down into the dark.',
@@ -226,7 +249,7 @@ const SCENES = {
   /* EAST. The other end, the second shelter, and the paper trail. */
   graveyard: {
     name: 'The Graveyard',
-    aspect: 3, zoom: 1, ground: 0.92,
+    aspect: 3, zoom: 1, ground: 0.9183,       /* row 1102 */
     ridge: false,
     shelter: true,
     art: '../../art/locations/graveyard/',
