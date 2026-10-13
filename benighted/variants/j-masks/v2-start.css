@@ -54,42 +54,73 @@
   filter:brightness(.26) saturate(.72) contrast(1.05);
 }
 
-/* The world as painted, shown only where the light falls. Two pools: the one
-   you are carrying, and the one over the church door, which is in the picture
-   and is not yours. That second one is the whole mood of the screen — there
-   is somebody else's light on before you arrive. */
-#start .plate.lit{
-  --mx:50%; --my:62%;
-  -webkit-mask-image:
-    radial-gradient(circle 20vw at var(--mx) var(--my),
-      #000 0%, rgba(0,0,0,.86) 34%, rgba(0,0,0,0) 72%),
-    radial-gradient(circle 7vw at 40.3% 68%,
-      #000 0%, rgba(0,0,0,.5) 40%, rgba(0,0,0,0) 100%);
-  mask-image:
-    radial-gradient(circle 20vw at var(--mx) var(--my),
-      #000 0%, rgba(0,0,0,.86) 34%, rgba(0,0,0,0) 72%),
-    radial-gradient(circle 7vw at 40.3% 68%,
-      #000 0%, rgba(0,0,0,.5) 40%, rgba(0,0,0,0) 100%);
-  -webkit-mask-composite:source-over;      /* the old WebKit spelling of… */
-          mask-composite:add;              /* …this: both pools, not one */
+/* THE LANTERN MOVES ON THE COMPOSITOR, AND NOTHING REPAINTS.
+
+   This used to be one full-bleed copy of the painting with a two-pool mask on
+   it, and the pool's centre came from a CSS variable the pointer handler
+   rewrote. That is a 2160x1080 element — NINE MEGAPIXELS at devicePixelRatio
+   2 — and changing a length inside its mask invalidates the whole thing, so
+   every mouse move re-rasterised nine megapixels of gradient. The warm glow
+   was a second full-bleed gradient doing the same, plus a screen blend over
+   the top. Measured at 1920x1080: 39fps while moving, a median frame of
+   32.8ms, every frame missing vsync. Turning the mask off alone bought 46,
+   the glow alone 58, both 60.
+
+   Now the only thing that changes per move is a transform, which the
+   compositor applies to an already-rasterised texture:
+
+     .lamp    a 40vw box carrying a STATIC radial mask, moved by transform.
+     .lamp .plate  the painting, full size, inside it, counter-translated by
+              the same amount — so it stays registered to the yard while the
+              hole slides over it. Two transforms, no repaint.
+     .glow    a 28vw box with a static gradient, moved by transform. The
+              screen blend now costs a 28vw square instead of the screen.
+     .core    transform rather than left/top, so it cannot force layout.
+
+   The pool geometry is unchanged: `circle 20vw` with stops at 0/34/72% is
+   exactly `closest-side` on a 40vw box with the same stops. */
+#start .lamp{
+  position:absolute;left:0;top:0;width:40vw;height:40vw;
+  pointer-events:none;will-change:transform;
+  -webkit-mask-image:radial-gradient(circle closest-side at 50% 50%,
+    #000 0%, rgba(0,0,0,.86) 34%, rgba(0,0,0,0) 72%);
+  mask-image:radial-gradient(circle closest-side at 50% 50%,
+    #000 0%, rgba(0,0,0,.86) 34%, rgba(0,0,0,0) 72%);
+}
+#start .lamp .plate{
+  position:absolute;left:0;top:0;
+  width:max(100vw,200vh);height:max(50vw,100vh);
+  will-change:transform;
 }
 
-/* The lantern's own glow, warm, over the top of what it reveals. Screen so it
-   lifts the greens rather than painting beige over them. */
+/* The second pool, over the church door. It never moves, so its mask is
+   rasterised once and then left alone — which is what the moving one was
+   failing to be. It is in the picture and it is not yours: somebody else's
+   light is on before you arrive. */
+#start .plate.door{
+  -webkit-mask-image:radial-gradient(circle 7vw at 40.3% 68%,
+    #000 0%, rgba(0,0,0,.5) 40%, rgba(0,0,0,0) 100%);
+  mask-image:radial-gradient(circle 7vw at 40.3% 68%,
+    #000 0%, rgba(0,0,0,.5) 40%, rgba(0,0,0,0) 100%);
+}
+
+/* The lantern's own glow, warm, over what it reveals. Screen so it lifts the
+   greens rather than painting beige over them. */
 #start .glow{
-  position:absolute;inset:0;pointer-events:none;mix-blend-mode:screen;
-  background:radial-gradient(circle 14vw at var(--mx,50%) var(--my,62%),
+  position:absolute;left:0;top:0;width:28vw;height:28vw;
+  pointer-events:none;mix-blend-mode:screen;will-change:transform;
+  background:radial-gradient(circle closest-side at 50% 50%,
     rgba(217,160,91,.26) 0%, rgba(217,160,91,.09) 38%, rgba(217,160,91,0) 70%);
 }
 /* And the core, so the pointer has a position and not just a region. */
 #start .core{
-  position:absolute;width:12px;height:12px;border-radius:50%;
-  margin:-6px 0 0 -6px;pointer-events:none;
+  position:absolute;left:0;top:0;width:12px;height:12px;border-radius:50%;
+  margin:-6px 0 0 -6px;pointer-events:none;will-change:transform;
   background:#F6DCA6;
   box-shadow:0 0 14px 5px rgba(217,160,91,.6), 0 0 40px 16px rgba(217,160,91,.25);
 }
-#start.lamp-off .glow,#start.lamp-off .core{display:none}
-#start.lamp-off .plate.lit{-webkit-mask-image:none;mask-image:none}
+#start.lamp-off .glow,#start.lamp-off .core,#start.lamp-off .lamp{display:none}
+#start.lamp-off .plate.door{-webkit-mask-image:none;mask-image:none}
 #start.lamp-off .plate.dark{filter:none}
 
 /* ---------- the type ----------

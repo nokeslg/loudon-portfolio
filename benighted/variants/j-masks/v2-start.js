@@ -52,7 +52,8 @@ const MENU = [
 const MARKUP = `
   <div class="yard">
     <div class="plate dark"></div>
-    <div class="plate lit"></div>
+    <div class="plate lit door"></div>
+    <div class="lamp"><div class="plate lit"></div></div>
   </div>
   <div class="glow"></div>
   <i class="core"></i>
@@ -81,26 +82,49 @@ let sel = 0, el = null;
 function el$() { return document.getElementById('start'); }
 
 /* ---------- the lantern ----------
-   Written into the two elements that use it as percentages of the 2:1 stage,
-   so the mask and the glow agree with each other and with the painting at any
-   window size. Not throttled: a pointermove handler that sets two custom
-   properties is cheaper than the rAF that would schedule it. */
-function moveLamp(clientX, clientY) {
+   THREE TRANSFORMS AND NOTHING ELSE. See the long note in v2-start.css for
+   what this replaced and what it measured.
+
+   The lamp box is moved to the pointer; the painting inside it is moved by
+   the same amount in the opposite direction, so the picture stays nailed to
+   the yard while the hole slides across it. The glow and the core follow in
+   viewport coordinates because they are not part of the painting.
+
+   NOW THROTTLED TO A FRAME. The old comment here said a handler that sets two
+   custom properties is cheaper than the rAF that would schedule it. That was
+   true of the properties and false of what they fed: each one invalidated a
+   nine-megapixel mask. A mouse reports faster than the screen refreshes, so
+   anything past the first event in a frame was work thrown away even when it
+   was cheap. */
+let lampX = 0, lampY = 0, lampQueued = false;
+
+function applyLamp() {
+  lampQueued = false;
   const s = el$();
-  if (!s) return;
+  if (!s || s.hidden) return;
   const yard = s.querySelector('.yard');
+  const lamp = s.querySelector('.lamp');
   const r = yard.getBoundingClientRect();
   if (!r.width || !r.height) return;
-  const px = ((clientX - r.left) / r.width  * 100).toFixed(2) + '%';
-  const py = ((clientY - r.top)  / r.height * 100).toFixed(2) + '%';
-  s.querySelector('.plate.lit').style.setProperty('--mx', px);
-  s.querySelector('.plate.lit').style.setProperty('--my', py);
-  const g = s.querySelector('.glow');
-  g.style.setProperty('--mx', px);
-  g.style.setProperty('--my', py);
-  const core = s.querySelector('.core');
-  core.style.left = clientX + 'px';
-  core.style.top  = clientY + 'px';
+
+  /* Pointer, in the yard's own coordinates. */
+  const x = lampX - r.left, y = lampY - r.top;
+  const half = lamp.offsetWidth / 2;
+  lamp.style.transform = `translate3d(${(x - half).toFixed(1)}px,${(y - half).toFixed(1)}px,0)`;
+  lamp.firstElementChild.style.transform =
+    `translate3d(${(half - x).toFixed(1)}px,${(half - y).toFixed(1)}px,0)`;
+
+  const g = s.querySelector('.glow'), gh = g.offsetWidth / 2;
+  g.style.transform = `translate3d(${(lampX - gh).toFixed(1)}px,${(lampY - gh).toFixed(1)}px,0)`;
+  s.querySelector('.core').style.transform =
+    `translate3d(${lampX.toFixed(1)}px,${lampY.toFixed(1)}px,0)`;
+}
+
+function moveLamp(clientX, clientY) {
+  lampX = clientX; lampY = clientY;
+  if (lampQueued) return;              // one update per frame, whatever the mouse does
+  lampQueued = true;
+  requestAnimationFrame(applyLamp);
 }
 
 /* Keyboard players get the lantern too: it goes to whatever is selected, so
