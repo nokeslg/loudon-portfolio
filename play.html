@@ -2,59 +2,23 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Benighted — play</title>
-<meta name="description" content="Benighted: three days of light, five masked villagers, and one of them is not a person.">
-<link rel="stylesheet" href="https://use.typekit.net/lpg6kig.css">
-<!-- A page that does nothing but run the game.
+<!-- THIS USED TO HOST THE GAME IN AN IFRAME, and that is the one structural
+     difference between the copy on this site and the copy Loudon runs from
+     localhost -- which is the one that felt faster. The code is byte
+     identical, so the container was the only variable left. An iframe is a
+     second document with its own compositing layer over the whole screen, and
+     the cost of that scales with the display: free on a 1024x768 pane,
+     something you can feel on a Retina one.
 
-     The case study used to embed it in an iframe partway down a 15,000px
-     document, which meant the game's frame loop was competing with the
-     scrolling of everything above and below it for the whole visit. Here
-     there is nothing else on the page to compete with, so it runs exactly as
-     fast as it does standing alone. -->
-<style>
-*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-html,body{height:100%;overflow:hidden;background:#040E0F}
-#game{position:fixed;inset:0;width:100%;height:100%;border:0;display:block}
-
-.back{
-  position:fixed;left:18px;top:16px;z-index:10;
-  display:flex;align-items:center;gap:9px;
-  font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:11px;
-  letter-spacing:.18em;text-transform:uppercase;text-decoration:none;
-  color:#5D7A77;background:rgba(4,14,15,.66);
-  border:1px solid #1B3A3B;padding:8px 13px;
-  transition:color .18s ease,border-color .18s ease,opacity .5s ease;
-}
-.back:hover{color:#D9A05B;border-color:#D9A05B}
-/* Out of the way once you are playing, back on the first move of the mouse. */
-body.idle .back{opacity:0;pointer-events:none}
-@media (prefers-reduced-motion:reduce){ .back{transition:none} }
-</style>
+     So the game runs as a top-level document now, exactly as it does on
+     localhost. This address is kept because it may already have been shared;
+     it replaces itself in history rather than redirecting, so the back button
+     still goes where the player came from instead of bouncing off a redirect. -->
+<script>location.replace('benighted/variants/j-masks/index.html');</script>
+<meta http-equiv="refresh" content="0; url=benighted/variants/j-masks/index.html">
+<style>html,body{margin:0;height:100%;background:#040E0F;color:#CFDEDB;
+  font:15px/1.6 Georgia,serif;display:grid;place-items:center}a{color:#D9A05B}</style>
 </head>
-<body>
-<a class="back" href="benighted.html"><span aria-hidden="true">&larr;</span> Case study</a>
-<iframe id="game" src="benighted/variants/j-masks/index.html"
-        title="Benighted" allow="fullscreen; autoplay"></iframe>
-<script>
-/* Hand the game the keyboard immediately, so nobody has to work out that they
-   need to click the page first. */
-var f = document.getElementById('game');
-f.addEventListener('load', function () { try { f.focus(); } catch (e) {} });
-f.focus();
-
-/* The back link gets out of the way while you play and comes back when the
-   mouse does. The game is keyboard-driven, so an idle mouse means playing. */
-var t;
-function wake() {
-  document.body.classList.remove('idle');
-  clearTimeout(t);
-  t = setTimeout(function () { document.body.classList.add('idle'); }, 2600);
-}
-addEventListener('mousemove', wake);
-addEventListener('keydown', wake);
-wake();
-</script>
-</body>
+<body><p>Opening <a href="benighted/variants/j-masks/index.html">Benighted</a>&hellip;</p></body>
 </html>
