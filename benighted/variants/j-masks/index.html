@@ -17,6 +17,7 @@
   <link rel="stylesheet" href="v2-tutorial.css">
   <link rel="stylesheet" href="v2-book.css">
   <link rel="stylesheet" href="v2-day.css">
+  <link rel="stylesheet" href="v2-pause.css">
   <!-- Masonic Lodge (display) + Alverata Irregular (text), from the project's
        own Adobe Fonts web project. CSS embed, not the JS loader: the JS one
        needs a referrer that a local file system does not send. -->
@@ -70,21 +71,29 @@
 
 <div id="line"></div>
 
-<!-- THE KEY LEGEND IS GONE.
+<!-- THE BOTTOM ROW IS GONE, AND SO IS THE KEY LEGEND BEFORE IT.
 
-     It used to read "← → walk · E look · TAB what you know · ` numbers", which
+     The legend read "← → walk · E look · TAB what you know · ` numbers", which
      was the whole of the game's instruction back when there wasn't any. The
-     three tutorial frames teach all four properly now, and ? reopens them at
-     any time, so the strip was saying the same things again permanently and
-     worse — and one of them, the backtick, was a debug toggle nobody playing
-     should have been told about.
+     tutorial teaches all four properly now.
 
-     The four buttons stay. They are controls, not instruction. -->
-<div id="hud">
-  <button id="help" aria-label="How to play">?</button>
-  <button id="mute">mute</button>
-  <button id="fs">fullscreen</button>
-  <button id="restart">restart</button>
+     The four buttons went next. They are controls rather than instruction, but
+     they were still four pieces of furniture sitting in the bottom of every
+     frame of a game about what you can and cannot see. They live in the pause
+     menu now, on Esc, with their ids unchanged so every handler already bound
+     to them still works. -->
+<div id="pause" hidden role="dialog" aria-modal="true" aria-label="Paused">
+  <div class="pause__inner">
+    <p class="pause__title">Paused</p>
+    <div class="pause__menu">
+      <button id="resume"  class="pause__item">Resume</button>
+      <button id="help"    class="pause__item">How to play</button>
+      <button id="mute"    class="pause__item">Mute</button>
+      <button id="fs"      class="pause__item">Fullscreen</button>
+      <button id="restart" class="pause__item">Restart</button>
+    </div>
+    <p class="pause__hint">Esc</p>
+  </div>
 </div>
 
 <div id="debug"></div>
@@ -100,6 +109,7 @@
 <script src="v2-audio.js"></script>
 <script src="v2-book.js"></script>
 <script src="v2-day.js"></script>
+<script src="v2-pause.js"></script>
 <script src="v2-tutorial.js"></script>
 <script src="v2-start.js"></script>
 <script src="v2-onboard.js"></script>

@@ -219,7 +219,7 @@ function setMuted(v) {
        label is ambiguous in a row of buttons that say what they do — it
        reads as the current state to half the people who see it and as the
        thing they are about to cause to the other half. */
-    btn.textContent = v ? 'unmute' : 'mute';
+    btn.textContent = v ? 'Unmute' : 'Mute';
     btn.setAttribute('aria-pressed', String(v));
   }
   if (master) ramp(master.gain, v ? 0 : 1, 0.25);

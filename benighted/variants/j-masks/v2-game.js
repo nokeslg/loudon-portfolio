@@ -213,6 +213,13 @@ addEventListener('keydown', e => {
     if (k === 'escape') { closeTalk(); return; }
     return;                            // nothing else reaches the world mid-talk
   }
+  /* ESC, WHEN NOTHING ELSE WANTS IT. A conversation has already had its go
+     above and returned; the tutorial, the title and the prologue each hold
+     the key on a capturing listener of their own while they are open and
+     stop it before it reaches here. What is left is the world, and in the
+     world Esc is pause. V2Pause.show() declines if any of those is somehow
+     still up. */
+  if (k === 'escape' && window.V2Pause) { e.preventDefault(); V2Pause.show(); return; }
   if (k === 'tab') { e.preventDefault(); toggleNotes(); }
   if (k === '`') document.body.classList.toggle('debug');
   if (k === 'f') toggleFull();
@@ -246,6 +253,18 @@ function blinkTick(dt) {
 }
 
 function update(dt) {
+  /* Paused takes the world away, not the renderer: everything carries on
+     being drawn behind the menu, nothing moves.
+
+     Belt and braces. The menu also swallows keys on the capture phase, which
+     is enough in a browser, where a key event targets the focused element and
+     window's capture listeners run before window's bubble ones. It is NOT
+     enough when an event is dispatched AT window — then both phases fire at
+     the target in registration order, and v2-game.js is registered first. A
+     test found it that way. One line here and it cannot matter how the event
+     arrived. */
+  if (window.V2Pause && V2Pause.isOpen()) return;
+
   const sc = SCENES[S.at];
   const srcW = SRC_H * sc.aspect;
 

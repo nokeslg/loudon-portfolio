@@ -209,20 +209,12 @@ function measure(id) {
   View.top    = View.vh - View.sceneH;
   View.groundY = View.top + View.sceneH * sc.ground;
 
-  /* WHERE THE CAPTIONS CAN REACH.
-
-     placePrompt() puts a caption's BOTTOM edge here — the same line for every
-     object in the scene, because a caption hangs off the ground line rather
-     than off the thing it names. Published as a custom property so the
-     narration can sit above it instead of guessing.
-
-     It has to be published from here, not computed in CSS: it depends on
-     sc.zoom, sc.ground and the per-scene actorH, so no combination of vh and
-     a constant can track it. The narration used to be at bottom:32vh, which
-     put it 30px INSIDE the captions at a 770x994 window and somewhere else
-     entirely at every other size. */
-  document.documentElement.style.setProperty(
-    '--capline', (View.groundY - View.sceneH * actorH() * 1.25).toFixed(1) + 'px');
+  /* The caption line -- where placePrompt() puts a prompt's bottom edge -- used
+     to be published here as --capline, so the narration could sit above it.
+     The narration is tethered to the top of the screen now and nothing else
+     reads it, so it is gone rather than left to be maintained by the next
+     person who moves a ground line. The relationship it recorded is still
+     true: a caption hangs off the ground, not off the thing it names. */
 
   /* The hosts still span the whole scene, because their children are
      positioned as a fraction of it. They paint nothing, so this is free. */

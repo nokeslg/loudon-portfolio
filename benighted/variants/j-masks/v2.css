@@ -149,24 +149,37 @@ body{
 
    16px rather than 15: Alverata's x-height runs smaller than the system sans
    at the same size, so matching the number would have shrunk the line. */
-/* ABOVE THE CAPTIONS, NOT NEAR THEM.
+/* TETHERED TO THE TOP.
 
-   --capline is the y where a prompt's bottom edge sits, published by
-   measure() in v2-scene.js for the scene and window you are actually in. The
-   narration's own bottom edge goes 112px above it: a caption is about 75 tall
-   at the sizes this is played at, which leaves a clear 35-ish between the two
-   whatever the scene does with its ground line.
+   It has been chased around the lower half of the screen twice: first at a
+   fixed 32vh, which put it 30px inside the captions, then 112px above the
+   caption line, which kept it clear of them but left it floating at a height
+   that changed with the scene's ground line — so the one piece of text that
+   is the same voice every time appeared somewhere slightly different every
+   time. Text that moves is text you have to find.
 
-   The 165px floor is the old value and still the right one — it is what keeps
-   the line off the HUD on a short window, where --capline can come down far
-   enough to be no help. */
+   It is a fixed distance from the top now. The top is the quietest part of
+   every one of the three paintings, it is the half of the screen the player
+   is not looking at while walking, and the captions, the walker, the
+   villagers and the ground all live in the bottom half. Nothing it can
+   collide with moves.
+
+   AND IT CARRIES ITS OWN DARKNESS. A text-shadow is a reasonable thing to
+   read white text against a photograph with; it is not enough against a
+   painting that is sometimes sky and sometimes a lit window. The soft
+   ellipse behind the words fades in and out WITH them, so the screen is
+   clean the rest of the time — a permanent scrim across the top would be
+   another piece of furniture, which is the thing we just removed from the
+   bottom. */
 #line{
-  position:fixed;left:50%;transform:translateX(-50%);
-  bottom:max(165px, calc(100vh - var(--capline, 68vh) + 112px));
-  z-index:8;max-width:min(640px,86vw);text-align:center;
+  position:fixed;left:50%;top:46px;transform:translateX(-50%);
+  z-index:8;max-width:min(680px,84vw);text-align:center;
   font-family:"alverata-irregular",Georgia,serif;
-  font-size:16px;line-height:1.5;color:var(--ink);
-  text-shadow:0 1px 10px rgba(0,0,0,.95);
+  font-size:17px;line-height:1.55;color:var(--ink);
+  padding:18px 40px 20px;
+  background:radial-gradient(ellipse 130% 165% at 50% 50%,
+    rgba(4,14,15,.86) 0%, rgba(4,14,15,.66) 46%, rgba(4,14,15,0) 78%);
+  text-shadow:0 1px 12px rgba(0,0,0,.98);
   opacity:0;pointer-events:none;
 }
 #line.show{animation:say 7s ease forwards}
