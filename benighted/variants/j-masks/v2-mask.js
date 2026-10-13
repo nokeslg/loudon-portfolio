@@ -83,20 +83,35 @@ function buildMasks(sceneId) {
 const VILLAGER_SCALE =
   parseFloat(new URLSearchParams(location.search).get('vs')) || 1.70;
 
+let _footKey = '', _foot = 0;
+
 function paintMasks(S) {
   const h = View.sceneH * actorH() * VILLAGER_SCALE;
 
   /* One measurement for everybody: where the bottom of the fore layer sits
-     relative to the line the walker's feet are on. Read once per frame, not
-     once per villager. */
-  const fore = document.querySelector('#stage .lyr[data-id="fore"]');
-  const foot = fore ? fore.getBoundingClientRect().bottom - View.groundY : 0;
+     relative to the line the walker's feet are on.
+
+     CACHED, because getBoundingClientRect() forces the browser to flush
+     layout, and doing that inside the frame loop makes every frame wait for
+     a layout nothing asked for. It only changes when the window or the scene
+     does, so it is keyed on both and recomputed then. */
+  const key = View.vw + 'x' + View.vh + ':' + S.at + ':' + View.groundY;
+  if (key !== _footKey) {
+    const fore = document.querySelector('#stage .lyr[data-id="fore"]');
+    _foot = fore ? fore.getBoundingClientRect().bottom - View.groundY : 0;
+    _footKey = key;
+  }
+  const foot = _foot;
 
   document.querySelectorAll('#stage .villager').forEach(el => {
     /* Height only. Every figure is drawn at its own aspect and trimmed to its
        own bounding box, so forcing a width would squash whoever is widest. */
-    el.style.height = h + 'px';
-    el.style.bottom = (foot - sink() * View.scale) + 'px';
+    /* Written only when they change: the same string assigned every frame is
+       usually free, but these two are the only layout properties left in the
+       loop and leaving them out of it is one less thing to be sure about. */
+    const hpx = h + 'px', bpx = (foot - sink() * View.scale) + 'px';
+    if (el.style.height !== hpx) el.style.height = hpx;
+    if (el.style.bottom !== bpx) el.style.bottom = bpx;
     /* Out past the lantern a person is a shape, not a face. This is the whole
        "what is just outside the light" idea, and it is one line: fade the mask
        image by distance while the body stays black. */

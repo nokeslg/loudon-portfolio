@@ -107,9 +107,26 @@
 <!-- dormant unless the URL carries ?cap= ; see v2-cap.js -->
 <script src="v2-cap.js"></script>
 <script>
+  /* The debug readout, and a real frame counter in it.
+
+     Frame time is measured on the actual machine the game is running on,
+     which is the only place the number means anything: a laptop on battery,
+     an external display at a different resolution and a projector are three
+     different answers. `worst` is the slowest frame in the last second,
+     because an average of 60 hides the one hitch you can see. */
+  let _fn = 0, _fsum = 0, _fworst = 0, _flast = performance.now(), _fps = 0, _fw = 0;
+  (function tick(t) {
+    requestAnimationFrame(tick);
+    const d = t - _flast; _flast = t;
+    if (d > 0 && d < 1000) { _fn++; _fsum += d; if (d > _fworst) _fworst = d; }
+    if (_fsum >= 1000) { _fps = Math.round(1000 / (_fsum / _fn)); _fw = Math.round(_fworst);
+                         _fn = 0; _fsum = 0; _fworst = 0; }
+  })(performance.now());
+
   setInterval(() => {
     if (!window.S) return;
     document.getElementById('debug').textContent =
+      `${_fps}fps worst ${_fw}ms  ·  ` +
       `day ${S.day}  daylight ${S.daylight.toFixed(1)}  x ${S.x | 0}  ` +
       `scene ${S.at}  parts ${S.parts.length}/3  threat ${S.threat} ` +
       `(${THREAT.SIGHT[S.threat] || 'offstage'})` + (window.debugExtra ? '  ' + debugExtra() : '');

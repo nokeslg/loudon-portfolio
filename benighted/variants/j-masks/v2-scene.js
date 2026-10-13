@@ -98,6 +98,7 @@ const View = {
 };
 
 let camX = 0;          // current camera, display px
+let _camT = 0;         // when the camera last moved, for the time-corrected ease
 let camTarget = 0;
 
 /* --------------------------------------------------------------------------
@@ -339,8 +340,25 @@ function paintScene(S) {
      meant the "has the camera moved?" gate below was always true and the
      plates redrew on every single frame even when the player was standing
      perfectly still. Sub-pixel movement is not movement. */
+  /* TIME-CORRECTED, NOT PER-FRAME.
+
+     This was `camX += (camTarget - camX) * 0.12` — a fixed FRACTION of the
+     remaining distance per frame, which makes the camera's speed a function
+     of how often frames happen. The walker moves on dt and the camera did
+     not, so the gap between them changed with every hitch in the frame
+     timing: at 60fps the camera settles about 48 display px behind the
+     centre while walking, at 50fps it settles somewhere else, and anything
+     uneven in between slides the whole valley back and forth under a walker
+     who is moving perfectly smoothly. That is most of what "choppy" is here.
+     The frames were never the problem; the frame-RATE DEPENDENCE was.
+
+     Same feel, now a time constant: 0.12 per frame at 60fps is a tau of
+     0.13s, and exp() makes it identical at any rate. */
+  const _now = performance.now();
+  const _dt  = Math.min(0.05, (_now - _camT) / 1000 || 1 / 60);
+  _camT = _now;
   if (window.CAP_SNAP || Math.abs(camTarget - camX) < 0.05) camX = camTarget;
-  else camX += (camTarget - camX) * 0.12;
+  else camX += (camTarget - camX) * (1 - Math.exp(-_dt / 0.13));
 
   /* The hosts still carry the parallax so their children ride it, but they
      paint nothing — a transform on an empty element is free. The plates

@@ -290,6 +290,15 @@ function update(dt) {
 /* --------------------------------------------------------------------------
    THE ACTOR
 -------------------------------------------------------------------------- */
+/* Last drawn height AND the element it was written to. buildScene() rebuilds
+   the stage's innerHTML, which creates a BRAND NEW #actor with no inline
+   styles, so a cache keyed on the height alone silently skips sizing the new
+   element and the walker comes back 4x too big in any scene that shares an
+   actorH with the one before it. Caught by diffing the walker's rect against
+   the shipped build at twelve positions: the well matched to the pixel and
+   the church and the graveyard were 4.15x out. */
+let _actorEl = null, _actorH = -1;
+
 function paintActor(S) {
   const el = document.getElementById('actor');
   const svg = document.getElementById('actorSvg');
@@ -313,14 +322,33 @@ function paintActor(S) {
     flip = S.facing * Math.abs(p * 2 - 1);
   }
 
-  el.style.width  = (h * ACTOR_ASPECT) + 'px';   // drawn walker is 0.695, placeholder was 0.455
-  el.style.height = h + 'px';
-  el.style.left   = (S.x * View.scale) + 'px';
-  el.style.top    = (View.groundY - View.top - h + bob + sink() * View.scale) + 'px';
-  /* Lean is applied to the whole figure now rather than to an inner <g>.
-     Pivot at the feet, so he rocks over his own footing instead of sliding. */
-  el.style.transformOrigin = '50% 100%';
-  el.style.transform = `translateX(-50%) scaleX(${flip}) rotate(${lean}deg)`;
+  /* ONE TRANSFORM, NOT FOUR LAYOUT PROPERTIES.
+
+     This used to set width, height, left AND top every frame. Size and
+     position by layout means the browser re-lays-out the walker on every
+     frame, then paints him, then composites — while the valley behind him
+     moves by transform on the compositor alone. Two different pipelines
+     updating the same picture is how a figure comes to swim against its own
+     background by a frame, and "frame-y" is exactly what that looks like.
+
+     Size is set only when it actually changes, which is on a resize or a
+     scene with its own actorH. Position is folded into the transform, and
+     because a pure translation commutes with transform-origin the composed
+     result is identical to the pixel — asserted below in the commit. */
+  if (el !== _actorEl || h !== _actorH) {
+    _actorEl = el; _actorH = h;
+    el.style.width  = (h * ACTOR_ASPECT) + 'px';  // drawn walker is 0.695
+    el.style.height = h + 'px';
+    el.style.left   = '0px';
+    el.style.top    = '0px';
+    /* Lean pivots at the feet, so he rocks over his own footing. */
+    el.style.transformOrigin = '50% 100%';
+  }
+  const ax = S.x * View.scale;
+  const ay = View.groundY - View.top - h + bob + sink() * View.scale;
+  el.style.transform =
+    `translate3d(${ax.toFixed(2)}px,${ay.toFixed(2)}px,0) ` +
+    `translateX(-50%) scaleX(${flip}) rotate(${lean}deg)`;
 }
 
 /* --------------------------------------------------------------------------
