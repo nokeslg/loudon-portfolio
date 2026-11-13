@@ -1,0 +1,12 @@
+{
+  "redirects": [
+    { "source": "/benighted-game", "destination": "/benighted-game/", "permanent": false }
+  ],
+  "rewrites": [
+    { "source": "/benighted-game/", "destination": "/benighted/variants/j-masks/index.html" },
+    { "source": "/benighted-game/:path*", "destination": "/benighted/variants/j-masks/:path*" },
+    { "source": "/art/:path*", "destination": "/benighted/art/:path*" },
+    { "source": "/audio/:path*", "destination": "/benighted/audio/:path*" },
+    { "source": "/docs/:path*", "destination": "/benighted/docs/:path*" }
+  ]
+}
