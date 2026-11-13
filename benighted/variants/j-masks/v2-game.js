@@ -232,12 +232,50 @@ addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
 /* --------------------------------------------------------------------------
    THE LOOP
 -------------------------------------------------------------------------- */
+/* HOLD 60, EVEN WHERE THE SCREEN OFFERS MORE.
+
+   Measured side by side: the small embedded pane this was developed against
+   is 1024x768 at devicePixelRatio 2 and refreshes at 60Hz -- 3.1 megapixels,
+   sixty times a second. The same game in a browser, full screen on a Retina
+   laptop, is about 5.9 megapixels, and on a ProMotion panel the browser asks
+   for a hundred and twenty frames rather than sixty. That is four times the
+   pixel throughput for a renderer that composites five full-screen canvases
+   every frame, which is why it was buttery in one and choppy in the other
+   while the code was byte for byte identical.
+
+   The frame rate half is the worse half. A game that cannot SUSTAIN 120
+   delivers a mix of 8ms and 16ms frames, and uneven frames read as judder --
+   visibly worse than a locked 60, even though it is drawing more of them.
+   Holding a steady 60 trades frames nobody asked for against pacing everyone
+   can feel.
+
+   dt is real elapsed time and is unaffected: lastT only moves on a frame we
+   actually draw, so the walk, the camera and the daylight spend are identical
+   at any cap. ?fps=0 removes it; ?fps=120 lets a machine with the headroom
+   have everything its screen will take. */
+const FPS_CAP = (() => {
+  if (typeof location === 'undefined') return 60;
+  const q = parseFloat(new URLSearchParams(location.search).get('fps'));
+  return isNaN(q) ? 60 : q;
+})();
+/* The gate is 80% of the target interval, not 99%. rAF timestamps jitter by a
+   millisecond or two even when locked to vsync, and a gate set just under the
+   interval turns a frame that arrives 0.5ms early into a DROPPED one -- which
+   on a 60Hz screen means an occasional 33ms gap, the exact judder this is
+   meant to remove. At 80% a 120Hz panel still lands on every other frame
+   (8.3 skips, 16.7 passes) and a 60Hz one never misses. */
+const FRAME_MS = FPS_CAP > 0 ? (1000 / FPS_CAP) * 0.8 : 0;
+let lastPaint = 0;
+
 function frame(t) {
+  requestAnimationFrame(frame);
+  if (FRAME_MS && t - lastPaint < FRAME_MS) return;
+  lastPaint = t;
+
   const dt = Math.min(0.05, (t - lastT) / 1000 || 0);
   lastT = t;
   if (S && !S.over) update(dt);
   if (S) { blinkTick(dt); paintScene(S); paintPrompt(); paintLife(S); paintMasks(S); }
-  requestAnimationFrame(frame);
 }
 
 /* Off for 200-400ms, once every 8-15 seconds, irregular. Far rarer and far
